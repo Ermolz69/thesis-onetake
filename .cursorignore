@@ -1,0 +1,118 @@
+########################################
+# OS / System
+########################################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+########################################
+# IDEs
+########################################
+# JetBrains Rider / IntelliJ
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code (keep common shared configs)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+########################################
+# .NET build output (ALL directories)
+########################################
+**/bin/
+**/obj/
+**/[Bb]uild/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]ogs/
+**/TestResults/
+
+########################################
+# .NET artifacts / tooling
+########################################
+**/artifacts/
+*.pdb
+*.cache
+*.dbmdl
+*.log
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# NuGet (optional caches - usually not in repo anyway)
+.nuget/
+packages/
+
+########################################
+# User secrets / local configs
+########################################
+**/secrets.json
+**/*secrets*.json
+**/*.Development.json
+**/*.Local.json
+
+########################################
+# Environment files
+########################################
+.env
+.env.*
+!.env.example
+
+########################################
+# Node / Frontend
+########################################
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend build outputs
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/.nuxt/
+**/.parcel-cache/
+**/.vite/
+**/.turbo/
+
+########################################
+# Coverage
+########################################
+**/coverage/
+*.coverage
+*.coveragexml
+
+########################################
+# Temporary / swap / backup files
+########################################
+*.tmp
+*.temp
+*.swp
+*.bak
+*.old
+
+########################################
+# Certificates / keys (если случайно попадут)
+########################################
+*.pfx
+*.p12
+*.pem
+*.key

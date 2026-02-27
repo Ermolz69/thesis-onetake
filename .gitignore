@@ -1,0 +1,60 @@
+# ==============================
+# Root .gitignore — thesis repo
+# ==============================
+
+# OS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+*~
+
+# IDE / Editors (generic)
+.idea/
+*.iml
+*.sln.iml
+.vscode/
+*.code-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.swp
+*.swo
+*.sw?
+
+# Temp / backup
+*.bak
+*.tmp
+*.temp
+*.log
+*.cache
+.cache/
+
+# Secrets & env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+*.secrets.*
+
+# Archives (optional — раскомментуй якщо не хочеш архіви в репо)
+# *.zip
+# *.tar
+# *.tar.gz
+# *.rar
+# *.7z

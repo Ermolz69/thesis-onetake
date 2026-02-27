@@ -1,0 +1,198 @@
+# ==============================
+# Build results
+# ==============================
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+out/
+
+# ==============================
+# Visual Studio
+# ==============================
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.code-workspace
+
+# ==============================
+# VS Code (allow shared config)
+# ==============================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ==============================
+# Rider / JetBrains
+# ==============================
+.idea/
+*.sln.iml
+riderModule.iml
+_ReSharper.Caches/
+*.swp
+*.swo
+**/obj/rider.*
+**/obj/*.rider.*
+
+# ==============================
+# Build artifacts
+# ==============================
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+*_i.c
+*_p.c
+*_h.h
+*.ncb
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+
+# ==============================
+# NuGet
+# ==============================
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/obj/project.assets.json
+**/obj/project.nuget.*
+**/obj/*.nuget.*
+
+# ==============================
+# Test results & coverage
+# ==============================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+[Tt]est[Rr]esults/
+[Cc]overage/
+*.coverage
+*.coveragexml
+.msCoverageSourceRootsMapping*
+**/bin/**/coverage*
+**/obj/**/coverage*
+
+# ==============================
+# Azure
+# ==============================
+.azure/
+
+# ==============================
+# Entity Framework
+# ==============================
+*.edmx.diagram
+*.edmx.sql
+
+# ==============================
+# Database files
+# ==============================
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ==============================
+# Backup
+# ==============================
+*.bak
+*~
+
+# ==============================
+# OS
+# ==============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.AppleDouble
+.LSOverride
+Icon
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================
+# Application / config
+# ==============================
+# Media (user uploads)
+wwwroot/media/*
+!wwwroot/media/.gitkeep
+
+# Config — only base appsettings in repo
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json
+secrets.json
+*.secrets.json
+
+# HTTP client (REST files)
+*.http
+
+# ==============================
+# Environment & secrets
+# ==============================
+.env
+.env.local
+.env.*.local
+
+# ==============================
+# Solution user files (Rider/VS)
+# ==============================
+*.slnx
+*.userosscache

@@ -1,0 +1,120 @@
+# ==============================
+# Dependencies
+# ==============================
+node_modules/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+
+# ==============================
+# Build / output
+# ==============================
+dist/
+dist-ssr/
+build/
+out/
+.vite/
+*.local
+*.tsbuildinfo
+
+# ==============================
+# Logs & debug
+# ==============================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+
+# ==============================
+# Testing & coverage
+# ==============================
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+__snapshots__/
+*.snap
+
+# ==============================
+# Environment & secrets
+# ==============================
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================
+# IDE / Editors
+# ==============================
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# ==============================
+# OS
+# ==============================
+Thumbs.db
+Desktop.ini
+
+# ==============================
+# Vite / Rolldown
+# ==============================
+*.local
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# ==============================
+# Misc tooling
+# ==============================
+.turbo/
+.vercel/
+.netlify/
+*.tsbuildinfo
+.parcel-cache/
+.next/
+.nuxt/
+.output/
+.cache/
+*.tgz
+
+# ==============================
+# Optional: Storybook
+# ==============================
+storybook-static/
+
+# ==============================
+# Optional: PWA / workbox
+# ==============================
+dev-dist/
+sw.js
+workbox-*.js
+workbox-*.js.map
+precache-manifest.*.js
+
+# ==============================
+# Lock files (optional — зазвичай lock треба комітити)
+# ==============================
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

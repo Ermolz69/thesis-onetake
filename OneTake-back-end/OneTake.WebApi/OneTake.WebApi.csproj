@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <InternalsVisibleTo>OneTake.IntegrationTests</InternalsVisibleTo>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OneTake.Application\OneTake.Application.csproj" />
+      <ProjectReference Include="..\OneTake.Infrastructure\OneTake.Infrastructure.csproj" />
+      <ProjectReference Include="..\OneTake.Domain\OneTake.Domain.csproj" />
+      <ProjectReference Include="..\OneTake.Logging\OneTake.Logging.csproj" />
+    </ItemGroup>
+
+</Project>
