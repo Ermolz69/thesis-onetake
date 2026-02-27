@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Infrastructure.Files;
+using OneTake.Infrastructure.Grpc;
 using OneTake.Infrastructure.Persistence;
 using OneTake.Infrastructure.Repositories;
 using OneTake.Infrastructure.Services;
@@ -33,6 +34,8 @@ namespace OneTake.Infrastructure
 
             services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
             services.AddSingleton<IJwtProvider, JwtProvider>();
+            services.AddSingleton<IAnalyticsIngestClient, AnalyticsGrpcClient>();
+            services.AddSingleton<IRecommendationsClient, RecoGrpcClient>();
             services.AddScoped<IFileStorage>(provider =>
             {
                 var webRootPath = configuration["WebRootPath"] 

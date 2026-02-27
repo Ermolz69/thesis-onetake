@@ -35,6 +35,10 @@ $RECYCLE.BIN/
 *.swo
 *.sw?
 
+# Python venv / deps
+.venv/
+.venv-deps/
+
 # Temp / backup
 *.bak
 *.tmp

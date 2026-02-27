@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package onetake.analytics.v1;
+
+option csharp_namespace = "OneTake.GrpcContracts.Analytics.V1";
+
+service AnalyticsIngest {
+  rpc TrackEvent(TrackEventRequest) returns (TrackEventResponse);
+}
+
+message TrackEventRequest {
+  string event_id = 1;   // uuid string — idempotency
+  int64 ts = 2;          // unix ms
+  string user_id = 3;    // optional
+  string session_id = 4;
+  string event_name = 5;
+  string route = 6;
+  string entity_type = 7;  // optional
+  string entity_id = 8;    // optional
+  string props_json = 9;
+  string trace_id = 10;
+}
+
+message TrackEventResponse {
+  bool accepted = 1;
+  string error = 2;  // optional
+}
