@@ -1,4 +1,11 @@
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# .env в корені OneTakeAnalytics
+_env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(_env_path)
 
 GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
 CLICKHOUSE_HOST = os.environ.get("CLICKHOUSE_HOST", "localhost")

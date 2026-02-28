@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: onetake-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-onetake}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   clickhouse:
     image: clickhouse/clickhouse-server:24.8
     container_name: onetake-clickhouse
@@ -8,11 +26,12 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-default}
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
     ports:
-      - "8123:8123"   # HTTP
-      - "9000:9000"   # Native
+      - "8124:8123"   # HTTP (host 8124 to avoid conflict with other ClickHouse on 8123)
+      - "9001:9000"   # Native (host 9001; from host use CLICKHOUSE_PORT=9001)
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - ./contracts/clickhouse/init:/docker-entrypoint-initdb.d
+      - ./contracts/clickhouse/config.d/listen_host.xml:/etc/clickhouse-server/config.d/listen_host.xml:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8123/ping"]
       interval: 5s
@@ -55,4 +74,5 @@ services:
         condition: service_healthy
 
 volumes:
+  postgres_data:
   clickhouse_data:

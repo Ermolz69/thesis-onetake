@@ -1,2 +1,1 @@
-export { AuthByEmail } from './ui/AuthByEmail'
-
+export { AuthByEmail } from './ui/AuthByEmail';

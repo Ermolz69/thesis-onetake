@@ -12,8 +12,8 @@ public class AnalyticsGrpcClient : IAnalyticsIngestClient
 
     public AnalyticsGrpcClient(IConfiguration configuration)
     {
-        var url = configuration["GRPC_ANALYTICS_URL"] ?? "http://localhost:50051";
-        var channel = GrpcChannel.ForAddress(url);
+        string? url = configuration["GRPC_ANALYTICS_URL"] ?? "http://localhost:50051";
+        GrpcChannel channel = GrpcChannel.ForAddress(url);
         _client = new AnalyticsIngest.AnalyticsIngestClient(channel);
     }
 

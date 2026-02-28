@@ -24,7 +24,7 @@ namespace OneTake.WebApi.Extensions
 
         public static IActionResult ToActionResult(this ApiError error, string? traceId = null, string requestPath = "", string method = "")
         {
-            var problemDetails = error.ToProblemDetails(traceId, requestPath, method);
+            ProblemDetails problemDetails = error.ToProblemDetails(traceId, requestPath, method);
             return new ObjectResult(problemDetails) { StatusCode = error.HttpStatusCode };
         }
     }

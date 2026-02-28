@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,10 +10,12 @@ using OneTake.Infrastructure;
 using OneTake.Logging;
 using OneTake.WebApi.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseAppLogging(builder.Configuration);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<OneTake.Application.Common.Interfaces.ICurrentRequestContext, OneTake.WebApi.Services.CurrentRequestContext>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -21,14 +24,14 @@ builder.Services.AddControllers()
     {
         options.InvalidModelStateResponseFactory = context =>
         {
-            var errors = context.ModelState
+            Dictionary<string, string[]> errors = context.ModelState
                 .Where(x => x.Value?.Errors.Count > 0)
                 .ToDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
                 );
             
-            var problemDetails = new ValidationProblemDetails(errors)
+            ValidationProblemDetails problemDetails = new ValidationProblemDetails(errors)
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Title = "Validation Error",
@@ -36,7 +39,7 @@ builder.Services.AddControllers()
                 Detail = "One or more validation errors occurred"
             };
 
-            var traceId = System.Diagnostics.Activity.Current?.Id ?? context.HttpContext.TraceIdentifier;
+            string? traceId = System.Diagnostics.Activity.Current?.Id ?? context.HttpContext.TraceIdentifier;
             problemDetails.Extensions["errorCode"] = "VALIDATION_FAILED";
             problemDetails.Extensions["traceId"] = traceId;
             problemDetails.Extensions["requestPath"] = context.HttpContext.Request.Path;
@@ -104,11 +107,12 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.UseAppLogging();
 
 app.UseCors("AllowAll");
+app.UseMiddleware<OneTake.WebApi.Middleware.SessionIdMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

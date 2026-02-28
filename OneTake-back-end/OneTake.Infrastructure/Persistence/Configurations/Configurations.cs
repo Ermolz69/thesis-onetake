@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OneTake.Domain.Entities;
+using OneTake.Domain.Enums;
 
 namespace OneTake.Infrastructure.Persistence.Configurations
 {
@@ -60,6 +61,36 @@ namespace OneTake.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<PostTag> builder)
         {
             builder.HasKey(pt => new { pt.PostId, pt.TagId });
+        }
+    }
+
+    public class PostConfiguration : IEntityTypeConfiguration<Post>
+    {
+        public void Configure(EntityTypeBuilder<Post> builder)
+        {
+            builder.Property(p => p.Visibility)
+                .HasDefaultValue(Visibility.Public);
+        }
+    }
+
+    public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+    {
+        public void Configure(EntityTypeBuilder<Notification> builder)
+        {
+            builder.HasIndex(n => n.UserId);
+        }
+    }
+
+    public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+    {
+        public void Configure(EntityTypeBuilder<RefreshToken> builder)
+        {
+            builder.HasIndex(rt => rt.TokenHash);
+            builder.HasIndex(rt => rt.UserId);
+            builder.HasOne(rt => rt.User)
+                .WithMany()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

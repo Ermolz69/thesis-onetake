@@ -1,35 +1,78 @@
-import { AuthByEmail } from '@/features/auth-by-email'
+import { useEffect, useContext } from 'react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { AuthByEmail } from '@/features/auth-by-email';
+import { routes } from '@/shared/config';
+import {
+  pageWrapper,
+  cardClass,
+  titleClass,
+  subtitleClass,
+  linkClass,
+  btnSecondary,
+} from '@/shared/ui/auth-styles';
+import authSprite from '@/shared/ui/icons/auth-sprite.svg?raw';
+import { AuthContext } from '@/app/providers/auth';
 
 export const AuthPage = () => {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-      </div>
-      
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      </div>
+  const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  const isRegister = location.pathname === routes.auth.register;
+  const next = new URLSearchParams(location.search).get('next') || routes.home;
+  const hasAuth = auth?.hasAuth ?? false;
 
-      <div className="relative z-10 w-full max-w-md px-6">
-        <div className="mb-10 text-center">
-          <div className="inline-block mb-3">
-            <h1 className="text-6xl font-extrabold tracking-tight">
-              <span className="block bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]">
-                Welcome
-              </span>
-              <span className="block bg-gradient-to-r from-pink-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(236,72,153,0.5)] mt-1">
-                back
-              </span>
-            </h1>
-          </div>
-          <p className="text-[#dbeafe] text-base font-light opacity-95 tracking-wide">Enter your world of short videos</p>
+  useEffect(() => {
+    if (hasAuth) {
+      navigate(next, { replace: true });
+    }
+  }, [hasAuth, navigate, next]);
+
+  return (
+    <div className={pageWrapper}>
+      <div
+        className="absolute w-0 h-0 overflow-hidden"
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: authSprite }}
+      />
+      <div className={cardClass}>
+        <Link
+          to={routes.home}
+          className={`${btnSecondary} mb-6 inline-flex items-center justify-center gap-2 w-auto px-4`}
+        >
+          <svg className="w-5 h-5 shrink-0" aria-hidden>
+            <use href="#icon-back" />
+          </svg>
+          Back to home
+        </Link>
+        <h1 className={titleClass}>{isRegister ? 'Create account' : 'Sign in'}</h1>
+        <p className={subtitleClass}>
+          {isRegister
+            ? 'Join OneTake to share and discover content.'
+            : 'Enter your credentials to continue.'}
+        </p>
+        <div className="mt-6">
+          <AuthByEmail mode={isRegister ? 'register' : 'login'} next={next} />
         </div>
-        <AuthByEmail />
+        <div className="mt-6 pt-6 border-t border-slate-200">
+          <p className="text-sm text-slate-600">
+            {isRegister ? (
+              <>
+                Already have an account?{' '}
+                <Link to={routes.auth.login} className={linkClass + ' font-medium'}>
+                  Sign in
+                </Link>
+              </>
+            ) : (
+              <>
+                Don&apos;t have an account?{' '}
+                <Link to={routes.auth.register} className={linkClass + ' font-medium'}>
+                  Sign up
+                </Link>
+              </>
+            )}
+          </p>
+        </div>
       </div>
     </div>
-  )
-}
-
+  );
+};

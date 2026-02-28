@@ -1,8 +1,8 @@
-import { HTMLAttributes } from 'react'
-import { cn } from '@/shared/lib'
+import { HTMLAttributes } from 'react';
+import { cn } from '@/shared/lib';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error'
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error';
 }
 
 export const Badge = ({ children, className, variant = 'default', ...props }: BadgeProps) => {
@@ -12,7 +12,7 @@ export const Badge = ({ children, className, variant = 'default', ...props }: Ba
     success: 'bg-success text-white',
     warning: 'bg-warning text-white',
     error: 'bg-error text-white',
-  }
+  };
 
   return (
     <span
@@ -25,6 +25,5 @@ export const Badge = ({ children, className, variant = 'default', ...props }: Ba
     >
       {children}
     </span>
-  )
-}
-
+  );
+};

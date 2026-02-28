@@ -1,3 +1,2 @@
-export { Layout } from './ui/Layout'
-export type { LayoutProps } from './ui/Layout'
-
+export { Layout } from './ui/Layout';
+export type { LayoutProps } from './ui/Layout';

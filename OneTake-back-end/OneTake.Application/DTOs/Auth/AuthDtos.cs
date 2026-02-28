@@ -9,15 +9,18 @@ namespace OneTake.Application.DTOs.Auth
     );
 
     public record LoginRequest(
-        [Required] string Login, // Username or Email
+        [Required] string Login,
         [Required] string Password
     );
 
-    public record AuthResponse(
-        Guid Id,
-        string Username,
-        string Email,
-        string Token
-    );
+    public record AuthUserDto(Guid Id, string Username, string Email);
+
+    public record AuthResponse(string AccessToken, AuthUserDto User);
+
+    public record RefreshTokenResponse(string AccessToken);
+
+    public record LoginResult(AuthResponse Auth, string RefreshTokenValue);
+
+    public record RefreshResult(RefreshTokenResponse Auth, string RefreshTokenValue);
 }
 

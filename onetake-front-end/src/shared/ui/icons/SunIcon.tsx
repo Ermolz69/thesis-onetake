@@ -1,7 +1,7 @@
-import { SVGProps } from 'react'
+import { SVGProps } from 'react';
 
 export interface SunIconProps extends Omit<SVGProps<SVGSVGElement>, 'fill'> {
-  color?: string
+  color?: string;
 }
 
 export const SunIcon = ({ color = 'currentColor', ...props }: SunIconProps) => {
@@ -26,6 +26,5 @@ export const SunIcon = ({ color = 'currentColor', ...props }: SunIconProps) => {
       <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
     </svg>
-  )
-}
-
+  );
+};

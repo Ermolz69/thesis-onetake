@@ -18,13 +18,13 @@ namespace OneTake.Logging.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            string? traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
             context.Items["TraceId"] = traceId;
             context.Items["RequestStartTime"] = DateTime.UtcNow;
 
-            var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
             using (_logger.BeginScope(new Dictionary<string, object>
             {
@@ -40,8 +40,8 @@ namespace OneTake.Logging.Middleware
                 finally
                 {
                     stopwatch.Stop();
-                    var statusCode = context.Response.StatusCode;
-                    var logLevel = GetLogLevel(statusCode);
+                    int statusCode = context.Response.StatusCode;
+                    LogLevel logLevel = GetLogLevel(statusCode);
 
                     _logger.Log(
                         logLevel,

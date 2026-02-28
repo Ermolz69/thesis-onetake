@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Domain.Entities;
+using OneTake.Domain.Enums;
 using OneTake.Infrastructure.Persistence;
 
 namespace OneTake.Infrastructure.Repositories
@@ -26,17 +27,18 @@ namespace OneTake.Infrastructure.Repositories
 
         public async Task<(List<Post> Posts, bool HasMore)> GetPostsWithCursorAsync(string? cursor, int pageSize)
         {
-            var query = _dbSet
+            IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
+                .Where(p => p.Visibility == Visibility.Public)
                 .OrderByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(cursor))
             {
-                var cursorParts = cursor.Split('|');
+                string[] cursorParts = cursor.Split('|');
                 if (cursorParts.Length == 2 && 
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
@@ -47,11 +49,11 @@ namespace OneTake.Infrastructure.Repositories
                 }
             }
 
-            var posts = await query
+            List<Post> posts = await query
                 .Take(pageSize + 1)
                 .ToListAsync();
 
-            var hasMore = posts.Count > pageSize;
+            bool hasMore = posts.Count > pageSize;
             if (hasMore)
             {
                 posts = posts.Take(pageSize).ToList();
@@ -62,18 +64,18 @@ namespace OneTake.Infrastructure.Repositories
 
         public async Task<(List<Post> Posts, bool HasMore)> GetByAuthorIdWithCursorAsync(Guid authorId, string? cursor, int pageSize)
         {
-            var query = _dbSet
+            IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
-                .Where(p => p.AuthorId == authorId)
+                .Where(p => p.AuthorId == authorId && p.Visibility == Visibility.Public)
                 .OrderByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(cursor))
             {
-                var cursorParts = cursor.Split('|');
+                string[] cursorParts = cursor.Split('|');
                 if (cursorParts.Length == 2 && 
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
@@ -84,11 +86,11 @@ namespace OneTake.Infrastructure.Repositories
                 }
             }
 
-            var posts = await query
+            List<Post> posts = await query
                 .Take(pageSize + 1)
                 .ToListAsync();
 
-            var hasMore = posts.Count > pageSize;
+            bool hasMore = posts.Count > pageSize;
             if (hasMore)
             {
                 posts = posts.Take(pageSize).ToList();
@@ -97,20 +99,59 @@ namespace OneTake.Infrastructure.Repositories
             return (posts, hasMore);
         }
 
-        public async Task<(List<Post> Posts, bool HasMore)> GetByTagWithCursorAsync(string tagName, string? cursor, int pageSize)
+        public async Task<(List<Post> Posts, bool HasMore)> GetByAuthorIdsWithCursorAsync(IEnumerable<Guid> authorIds, string? cursor, int pageSize)
         {
-            var query = _dbSet
+            List<Guid> idList = authorIds.ToList();
+            if (idList.Count == 0)
+                return (new List<Post>(), false);
+
+            IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
-                .Where(p => p.PostTags.Any(pt => pt.Tag!.Name == tagName))
+                .Where(p => idList.Contains(p.AuthorId) && p.Visibility == Visibility.Public)
                 .OrderByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(cursor))
             {
-                var cursorParts = cursor.Split('|');
+                string[] cursorParts = cursor.Split('|');
+                if (cursorParts.Length == 2 &&
+                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
+                    Guid.TryParse(cursorParts[1], out var cursorId))
+                {
+                    query = query.Where(p =>
+                        p.CreatedAt < cursorDate ||
+                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
+                }
+            }
+
+            List<Post> posts = await query
+                .Take(pageSize + 1)
+                .ToListAsync();
+
+            bool hasMore = posts.Count > pageSize;
+            if (hasMore)
+                posts = posts.Take(pageSize).ToList();
+
+            return (posts, hasMore);
+        }
+
+        public async Task<(List<Post> Posts, bool HasMore)> GetByTagWithCursorAsync(string tagName, string? cursor, int pageSize)
+        {
+            IQueryable<Post> query = _dbSet
+                .Include(p => p.Author)
+                .Include(p => p.Media)
+                .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
+                .Where(p => p.Visibility == Visibility.Public && p.PostTags.Any(pt => pt.Tag!.Name == tagName))
+                .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.Id)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(cursor))
+            {
+                string[] cursorParts = cursor.Split('|');
                 if (cursorParts.Length == 2 && 
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
@@ -121,15 +162,60 @@ namespace OneTake.Infrastructure.Repositories
                 }
             }
 
-            var posts = await query
+            List<Post> posts = await query
                 .Take(pageSize + 1)
                 .ToListAsync();
 
-            var hasMore = posts.Count > pageSize;
+            bool hasMore = posts.Count > pageSize;
             if (hasMore)
             {
                 posts = posts.Take(pageSize).ToList();
             }
+
+            return (posts, hasMore);
+        }
+
+        public async Task<(List<Post> Posts, bool HasMore)> SearchAsync(string query, string? cursor, int pageSize)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return (new List<Post>(), false);
+
+            string term = query.Trim();
+            string pattern = $"%{term}%";
+
+            IQueryable<Post> queryable = _dbSet
+                .Include(p => p.Author).ThenInclude(a => a!.Profile)
+                .Include(p => p.Media)
+                .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
+                .Where(p => p.Visibility == Visibility.Public)
+                .Where(p =>
+                    EF.Functions.ILike(p.ContentText, pattern) ||
+                    p.PostTags.Any(pt => pt.Tag != null && EF.Functions.ILike(pt.Tag.Name, pattern)) ||
+                    (p.Author != null && EF.Functions.ILike(p.Author.Username, pattern)) ||
+                    (p.Author != null && p.Author.Profile != null && EF.Functions.ILike(p.Author.Profile.FullName, pattern)))
+                .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.Id);
+
+            if (!string.IsNullOrEmpty(cursor))
+            {
+                string[] cursorParts = cursor.Split('|');
+                if (cursorParts.Length == 2 &&
+                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
+                    Guid.TryParse(cursorParts[1], out var cursorId))
+                {
+                    queryable = queryable.Where(p =>
+                        p.CreatedAt < cursorDate ||
+                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
+                }
+            }
+
+            List<Post> posts = await queryable
+                .Take(pageSize + 1)
+                .ToListAsync();
+
+            bool hasMore = posts.Count > pageSize;
+            if (hasMore)
+                posts = posts.Take(pageSize).ToList();
 
             return (posts, hasMore);
         }

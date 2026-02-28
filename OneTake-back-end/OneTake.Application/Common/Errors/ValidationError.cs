@@ -20,13 +20,13 @@ namespace OneTake.Application.Common.Errors
 
         public override IActionResult ToActionResult()
         {
-            var problemDetails = ToProblemDetails(null, string.Empty, string.Empty);
+            ProblemDetails problemDetails = ToProblemDetails(null, string.Empty, string.Empty);
             return new BadRequestObjectResult(problemDetails);
         }
 
         public override ProblemDetails ToProblemDetails(string? traceId, string requestPath, string method)
         {
-            var problemDetails = new ValidationProblemDetails(Errors)
+            ValidationProblemDetails problemDetails = new ValidationProblemDetails(Errors)
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Title = "Validation Error",

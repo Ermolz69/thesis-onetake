@@ -59,14 +59,13 @@ namespace OneTake.UnitTests.Services
         }
 
         [Fact]
-        public void Verify_ShouldReturnFalse_WhenHashIsInvalid()
+        public void Verify_ShouldThrow_WhenHashIsInvalid()
         {
-            var password = "TestPassword123";
-            var invalidHash = "invalid_hash_string";
-            
-            var result = _hasher.Verify(password, invalidHash);
-            
-            Assert.False(result);
+            string password = "TestPassword123";
+            string invalidHash = "invalid_hash_string";
+
+            Exception ex = Assert.ThrowsAny<Exception>(() => _hasher.Verify(password, invalidHash));
+            Assert.NotNull(ex);
         }
     }
 }

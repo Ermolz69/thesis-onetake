@@ -20,7 +20,7 @@ namespace OneTake.Infrastructure.Repositories
 
         public async Task<Tag> GetOrCreateByNameAsync(string name)
         {
-            var tag = await GetByNameAsync(name);
+            Tag? tag = await GetByNameAsync(name);
             if (tag == null)
             {
                 tag = new Tag { Name = name };

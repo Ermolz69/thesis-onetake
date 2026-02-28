@@ -11,13 +11,13 @@ namespace OneTake.Application.Common.Errors
 
         public override IActionResult ToActionResult()
         {
-            var problemDetails = ToProblemDetails(null, string.Empty, string.Empty);
+            ProblemDetails problemDetails = ToProblemDetails(null, string.Empty, string.Empty);
             return new ObjectResult(problemDetails) { StatusCode = HttpStatusCode };
         }
 
         public override ProblemDetails ToProblemDetails(string? traceId, string requestPath, string method)
         {
-            var problemDetails = new ProblemDetails
+            ProblemDetails problemDetails = new ProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
                 Title = "Forbidden",

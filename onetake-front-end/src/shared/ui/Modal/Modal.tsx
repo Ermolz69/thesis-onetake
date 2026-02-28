@@ -1,35 +1,35 @@
-import { ReactNode, useEffect } from 'react'
-import { cn } from '@/shared/lib'
-import { Button } from '../Button'
+import { ReactNode, useEffect } from 'react';
+import { cn } from '@/shared/lib';
+import { Button } from '@/shared/ui';
 
 export interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  children: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) => {
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const sizes = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
-  }
+  };
 
   return (
     <div
@@ -37,10 +37,7 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       onClick={onClose}
     >
       <div
-        className={cn(
-          'bg-bg-primary rounded-lg shadow-lg w-full mx-4',
-          sizes[size]
-        )}
+        className={cn('bg-bg-primary rounded-lg shadow-lg w-full mx-4', sizes[size])}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
@@ -54,6 +51,5 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
         <div className="p-4">{children}</div>
       </div>
     </div>
-  )
-}
-
+  );
+};

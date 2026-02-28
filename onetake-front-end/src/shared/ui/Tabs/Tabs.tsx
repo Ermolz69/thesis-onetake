@@ -1,22 +1,22 @@
-import { ReactNode, useState } from 'react'
-import { cn } from '@/shared/lib'
+import { ReactNode, useState } from 'react';
+import { cn } from '@/shared/lib';
 
 export interface Tab {
-  id: string
-  label: string
-  content: ReactNode
+  id: string;
+  label: string;
+  content: ReactNode;
 }
 
 export interface TabsProps {
-  tabs: Tab[]
-  defaultTab?: string
-  className?: string
+  tabs: Tab[];
+  defaultTab?: string;
+  className?: string;
 }
 
 export const Tabs = ({ tabs, defaultTab, className }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
 
-  const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content
+  const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
 
   return (
     <div className={cn('w-full', className)}>
@@ -42,6 +42,5 @@ export const Tabs = ({ tabs, defaultTab, className }: TabsProps) => {
       </div>
       <div className="mt-4">{activeTabContent}</div>
     </div>
-  )
-}
-
+  );
+};

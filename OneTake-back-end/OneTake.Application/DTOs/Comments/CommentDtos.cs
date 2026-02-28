@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace OneTake.Application.DTOs.Comments
 {
@@ -12,7 +13,7 @@ namespace OneTake.Application.DTOs.Comments
     );
 
     public record CreateCommentRequest(
-        string Text
+        [Required, MinLength(1), MaxLength(2000)] string Text
     );
 }
 

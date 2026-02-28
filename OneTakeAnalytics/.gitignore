@@ -1,0 +1,66 @@
+# ==============================
+# OneTakeAnalytics — Python
+# ==============================
+
+# Virtual env
+.venv/
+venv/
+.venv-deps/
+env/
+
+# Bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Build / install
+build/
+dist/
+*.egg
+*.egg-info/
+*.egg-info
+.eggs/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Hatch / packaging
+.hatch/
+
+# Testing & coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs & temp
+*.log
+*.tmp
+.cache/

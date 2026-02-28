@@ -7,6 +7,8 @@ using OneTake.Infrastructure.Grpc;
 using OneTake.Infrastructure.Persistence;
 using OneTake.Infrastructure.Repositories;
 using OneTake.Infrastructure.Services;
+using OneTake.Infrastructure.Uploads;
+using OneTake.Infrastructure.Video;
 
 namespace OneTake.Infrastructure
 {
@@ -14,10 +16,18 @@ namespace OneTake.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            bool useInMemory = string.Equals(configuration["UseInMemoryDatabase"], "true", StringComparison.OrdinalIgnoreCase);
+            if (useInMemory)
+            {
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseInMemoryDatabase("InMemoryDbForTesting"));
+            }
+            else
+            {
+                string? connectionString = configuration.GetConnectionString("DefaultConnection");
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseNpgsql(connectionString));
+            }
 
             services.AddScoped<IAppDbContext, AppDbContext>();
 
@@ -31,17 +41,21 @@ namespace OneTake.Infrastructure
             services.AddScoped<IProfileRepository, ProfileRepository>();
             services.AddScoped<IMediaObjectRepository, MediaObjectRepository>();
             services.AddScoped<IFollowRepository, FollowRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+            services.AddSingleton<IRefreshTokenHasher, RefreshTokenHasher>();
             services.AddSingleton<IJwtProvider, JwtProvider>();
             services.AddSingleton<IAnalyticsIngestClient, AnalyticsGrpcClient>();
             services.AddSingleton<IRecommendationsClient, RecoGrpcClient>();
             services.AddScoped<IFileStorage>(provider =>
             {
-                var webRootPath = configuration["WebRootPath"] 
+                string? webRootPath = configuration["WebRootPath"] 
                     ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 return new LocalFileStorage(webRootPath);
             });
+            services.AddScoped<IUploadSessionStore, FileUploadSessionStore>();
+            services.AddScoped<IVideoProcessor, FfmpegVideoProcessor>();
 
             return services;
         }

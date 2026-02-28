@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace OneTake.Application.DTOs.Users
 {
@@ -9,13 +10,14 @@ namespace OneTake.Application.DTOs.Users
         string? Bio,
         string? AvatarUrl,
         int FollowersCount,
-        int FollowingCount
+        int FollowingCount,
+        bool? IsFollowing = null
     );
 
     public record UpdateProfileRequest(
-        string FullName,
-        string? Bio,
-        string? AvatarUrl
+        [Required, MinLength(1), MaxLength(200)] string FullName,
+        [MaxLength(500)] string? Bio,
+        [MaxLength(2048)] string? AvatarUrl
     );
 }
 

@@ -1,2 +1,1 @@
-export { cn } from './clsx'
-
+export { cn } from './clsx';

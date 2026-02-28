@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Infrastructure.Persistence;
@@ -19,6 +20,8 @@ namespace OneTake.Infrastructure.Repositories
             Profiles = new ProfileRepository(context);
             MediaObjects = new MediaObjectRepository(context);
             Follows = new FollowRepository(context);
+            Notifications = new NotificationRepository(context);
+            RefreshTokens = new RefreshTokenRepository(context);
         }
 
         public IUserRepository Users { get; }
@@ -29,10 +32,12 @@ namespace OneTake.Infrastructure.Repositories
         public IProfileRepository Profiles { get; }
         public IMediaObjectRepository MediaObjects { get; }
         public IFollowRepository Follows { get; }
+        public INotificationRepository Notifications { get; }
+        public IRefreshTokenRepository RefreshTokens { get; }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

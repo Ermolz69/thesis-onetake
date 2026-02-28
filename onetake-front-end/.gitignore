@@ -113,8 +113,7 @@ workbox-*.js.map
 precache-manifest.*.js
 
 # ==============================
-# Lock files (optional — зазвичай lock треба комітити)
+# Lock files (keep in repo for reproducible installs)
 # ==============================
-# package-lock.json
-# yarn.lock
+# package-lock.json  # uncomment to ignore
 # pnpm-lock.yaml

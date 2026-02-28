@@ -35,9 +35,33 @@ $RECYCLE.BIN/
 *.swo
 *.sw?
 
-# Python venv / deps
+# Python
 .venv/
 .venv-deps/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+*.manifest
+*.spec
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / test artifacts (when running from repo root)
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+TestResults/
 
 # Temp / backup
 *.bak

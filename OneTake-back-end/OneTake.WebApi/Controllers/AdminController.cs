@@ -1,5 +1,9 @@
+using System.Collections.Generic;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OneTake.Application.Common.Results;
+using OneTake.Application.DTOs.Users;
 using OneTake.Application.Services;
 using OneTake.Domain.Enums;
 using OneTake.WebApi.Extensions;
@@ -19,16 +23,16 @@ namespace OneTake.WebApi.Controllers
         }
 
         [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
         {
-            var result = await _adminService.GetAllUsersAsync();
+            Result<List<UserInfoDto>> result = await _adminService.GetAllUsersAsync(cancellationToken);
             return result.ToActionResult(HttpContext.TraceIdentifier, Request.Path, Request.Method);
         }
 
         [HttpPut("users/{id}/role")]
-        public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UserRole newRole)
+        public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UserRole newRole, CancellationToken cancellationToken = default)
         {
-            var result = await _adminService.UpdateUserRoleAsync(id, newRole);
+            Result result = await _adminService.UpdateUserRoleAsync(id, newRole, cancellationToken);
             return result.ToActionResult(HttpContext.TraceIdentifier, Request.Path, Request.Method);
         }
     }

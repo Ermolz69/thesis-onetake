@@ -11,6 +11,7 @@ namespace OneTake.Domain.Entities
         public string ContentText { get; set; } = string.Empty;
         public MediaType MediaType { get; set; }
         public Guid? MediaId { get; set; }
+        public Visibility Visibility { get; set; } = Visibility.Public;
 
         // Navigation properties
         public User? Author { get; set; }

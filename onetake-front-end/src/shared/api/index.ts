@@ -1,3 +1,3 @@
-export { http } from './http'
-export type { ProblemDetails, ValidationProblemDetails, ApiError, HttpError } from './types'
-
+export { http } from './http';
+export { HttpError } from './types';
+export type { ProblemDetails, ValidationProblemDetails, ApiError } from './types';

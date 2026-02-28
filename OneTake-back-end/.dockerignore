@@ -1,25 +1,43 @@
-﻿**/.dockerignore
-**/.env
+# Version control and IDE
 **/.git
 **/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
 **/.vs
 **/.vscode
 **/.idea
 **/*.*proj.user
-**/*.dbmdl
-**/*.jfm
+**/.project
+**/.settings
+**/.toolstarget
 **/azds.yaml
+
+# Build and test output
 **/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
 **/obj
+**/out
+**/TestResults
+**/TestResult*
+**/Coverage
+**/*.coverage
+**/coverage.*
+**/packages
+
+# Secrets and env
+**/.env
+**/.env.*
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.json
+!**/appsettings.json
+
+# Docs and misc (optional for image)
+**/node_modules
+**/npm-debug.log
+**/docker-compose*
+**/Dockerfile*
+**/charts
+**/*.dbmdl
+**/*.jfm
 LICENSE
 README.md

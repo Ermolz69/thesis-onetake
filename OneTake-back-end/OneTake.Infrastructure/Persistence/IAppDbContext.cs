@@ -17,6 +17,8 @@ namespace OneTake.Infrastructure.Persistence
         DbSet<Follow> Follows { get; }
         DbSet<Tag> Tags { get; }
         DbSet<PostTag> PostTags { get; }
+        DbSet<Notification> Notifications { get; }
+        DbSet<RefreshToken> RefreshTokens { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

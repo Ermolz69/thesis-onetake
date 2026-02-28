@@ -1,0 +1,36 @@
+# Virtual env and caches
+.venv/
+venv/
+.venv-deps/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Env and secrets (never in image)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.git/
+.gitignore
+*.md
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

@@ -3,9 +3,9 @@ from datetime import datetime
 from clickhouse_driver import Client
 from .config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD
 
-EVENTS_TABLE = "events"
+EVENTS_TABLE = "default.events"
 CREATE_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS events
+CREATE TABLE IF NOT EXISTS default.events
 (
     event_id    UUID,
     ts          DateTime64(3),

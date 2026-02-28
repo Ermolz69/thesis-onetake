@@ -194,5 +194,4 @@ secrets.json
 # ==============================
 # Solution user files (Rider/VS)
 # ==============================
-*.slnx
 *.userosscache

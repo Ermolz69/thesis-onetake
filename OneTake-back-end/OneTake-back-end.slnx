@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="OneTake.Application/OneTake.Application.csproj" />
+  <Project Path="OneTake.Domain/OneTake.Domain.csproj" />
+  <Project Path="OneTake.GrpcContracts/OneTake.GrpcContracts.csproj" />
+  <Project Path="OneTake.Infrastructure/OneTake.Infrastructure.csproj" />
+  <Project Path="OneTake.Logging/OneTake.Logging.csproj" />
+  <Project Path="OneTake.WebApi/OneTake.WebApi.csproj" />
+  <Project Path="tests/OneTake.UnitTests/OneTake.UnitTests.csproj" />
+  <Project Path="tests/OneTake.IntegrationTests/OneTake.IntegrationTests.csproj" />
+</Solution>

@@ -11,8 +11,8 @@ public class RecoGrpcClient : IRecommendationsClient
 
     public RecoGrpcClient(IConfiguration configuration)
     {
-        var url = configuration["GRPC_RECO_URL"] ?? "http://localhost:50052";
-        var channel = GrpcChannel.ForAddress(url);
+        string? url = configuration["GRPC_RECO_URL"] ?? "http://localhost:50052";
+        GrpcChannel channel = GrpcChannel.ForAddress(url);
         _client = new RecoService.RecoServiceClient(channel);
     }
 

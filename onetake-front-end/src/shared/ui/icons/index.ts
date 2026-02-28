@@ -1,12 +1,14 @@
-export { HeartIcon } from './HeartIcon'
-export type { HeartIconProps } from './HeartIcon'
+export { HeartIcon } from './HeartIcon';
+export type { HeartIconProps } from './HeartIcon';
 
-export { CommentIcon } from './CommentIcon'
-export type { CommentIconProps } from './CommentIcon'
+export { CommentIcon } from './CommentIcon';
+export type { CommentIconProps } from './CommentIcon';
 
-export { MoonIcon } from './MoonIcon'
-export type { MoonIconProps } from './MoonIcon'
+export { MoonIcon } from './MoonIcon';
+export type { MoonIconProps } from './MoonIcon';
 
-export { SunIcon } from './SunIcon'
-export type { SunIconProps } from './SunIcon'
+export { SunIcon } from './SunIcon';
+export type { SunIconProps } from './SunIcon';
 
+export { BellIcon } from './BellIcon';
+export type { BellIconProps } from './BellIcon';

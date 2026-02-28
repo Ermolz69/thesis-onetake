@@ -1,47 +1,43 @@
-import { InputHTMLAttributes, forwardRef } from 'react'
-import { cn } from '@/shared/lib'
+import { InputHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { cn } from '@/shared/lib';
+import { inputBase, inputError, labelClass } from '@/shared/ui/auth-styles';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  variant?: 'default' | 'auth'
+  label?: string;
+  error?: string;
+  variant?: 'default' | 'auth';
+  trailing?: ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, type = 'text', variant = 'default', ...props }, ref) => {
+  ({ className, label, error, type = 'text', variant = 'default', trailing, ...props }, ref) => {
     if (variant === 'auth') {
       return (
         <div className="w-full">
-          <input
-            ref={ref}
-            type={type}
-            placeholder={label}
-            className={cn(
-              'auth-input w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl',
-              'text-white',
-              'focus:outline-none focus:border-cyan-400/50 focus:bg-white/10',
-              'focus:ring-2 focus:ring-cyan-400/20 focus:ring-offset-2 focus:ring-offset-transparent',
-              'transition-all duration-300',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              error && 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20',
-              className
+          {label && <label className={`block ${labelClass}`}>{label}</label>}
+          <div className="relative">
+            <input
+              ref={ref}
+              type={type}
+              className={cn(inputBase, error && inputError, trailing && 'pr-12', className)}
+              aria-invalid={!!error}
+              aria-describedby={error ? undefined : undefined}
+              {...props}
+            />
+            {trailing && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                {trailing}
+              </div>
             )}
-            {...props}
-          />
-          {error && (
-            <p className="mt-2 text-sm text-red-400">{error}</p>
-          )}
+          </div>
+          {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
         </div>
-      )
+      );
     }
 
     return (
       <div className="w-full">
-        {label && (
-          <label className="block text-sm font-medium text-fg-primary mb-1">
-            {label}
-          </label>
-        )}
+        {label && <label className="block text-sm font-medium text-fg-primary mb-1">{label}</label>}
         <input
           ref={ref}
           type={type}
@@ -55,13 +51,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && (
-          <p className="mt-1 text-sm text-error">{error}</p>
-        )}
+        {error && <p className="mt-1 text-sm text-error">{error}</p>}
       </div>
-    )
+    );
   }
-)
+);
 
-Input.displayName = 'Input'
-
+Input.displayName = 'Input';

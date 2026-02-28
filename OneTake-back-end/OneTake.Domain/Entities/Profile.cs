@@ -10,7 +10,7 @@ namespace OneTake.Domain.Entities
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
 
-        // Navigation property
+
         public User? User { get; set; }
     }
 }

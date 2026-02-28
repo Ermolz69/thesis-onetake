@@ -43,7 +43,6 @@ export const theme = {
     xl: 'var(--spacing-xl)',
     '2xl': 'var(--spacing-2xl)',
   },
-} as const
+} as const;
 
-export type Theme = typeof theme
-
+export type Theme = typeof theme;

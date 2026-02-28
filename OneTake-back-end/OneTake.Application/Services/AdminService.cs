@@ -1,17 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OneTake.Application.Common.Errors;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Application.Common.Results;
+using OneTake.Domain.Entities;
 using OneTake.Domain.Enums;
 
 namespace OneTake.Application.Services
 {
     public interface IAdminService
     {
-        Task<Result<List<UserInfoDto>>> GetAllUsersAsync();
-        Task<Result> UpdateUserRoleAsync(Guid userId, UserRole newRole);
+        Task<Result<List<UserInfoDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default);
+        Task<Result> UpdateUserRoleAsync(Guid userId, UserRole newRole, CancellationToken cancellationToken = default);
     }
 
     public record UserInfoDto(
@@ -31,11 +33,11 @@ namespace OneTake.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<List<UserInfoDto>>> GetAllUsersAsync()
+        public async Task<Result<List<UserInfoDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
-            var users = await _unitOfWork.Users.GetAllUsersAsync();
+            List<User> users = await _unitOfWork.Users.GetAllUsersAsync();
 
-            var userDtos = users.Select(u => new UserInfoDto(
+            List<UserInfoDto> userDtos = users.Select(u => new UserInfoDto(
                 u.Id,
                 u.Username,
                 u.Email,
@@ -46,9 +48,9 @@ namespace OneTake.Application.Services
             return Result<List<UserInfoDto>>.Success(userDtos);
         }
 
-        public async Task<Result> UpdateUserRoleAsync(Guid userId, UserRole newRole)
+        public async Task<Result> UpdateUserRoleAsync(Guid userId, UserRole newRole, CancellationToken cancellationToken = default)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            User? user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
             {
                 return Result.Fail(new NotFoundError("USER_NOT_FOUND", "User not found"));
@@ -56,7 +58,7 @@ namespace OneTake.Application.Services
 
             user.Role = newRole;
             _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }

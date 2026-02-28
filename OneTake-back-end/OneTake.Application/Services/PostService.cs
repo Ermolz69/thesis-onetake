@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OneTake.Application.Common.Errors;
 using OneTake.Application.Common.Interfaces;
@@ -14,72 +15,78 @@ namespace OneTake.Application.Services
 {
     public interface IPostService
     {
-        Task<Result<PostDto>> CreatePostAsync(Guid userId, CreatePostRequest request, Stream fileStream, string fileName, string contentType);
-        Task<Result<PostDto>> GetPostByIdAsync(Guid id);
-        Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize);
-        Task<Result> DeletePostAsync(Guid id, Guid userId, bool canDelete);
-        Task<Result> LikePostAsync(Guid postId, Guid userId);
-        Task<Result> UnlikePostAsync(Guid postId, Guid userId);
+        Task<Result<PostDto>> CreatePostAsync(Guid userId, CreatePostRequest request, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
+        Task<Result<PostDto>> GetPostByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, CancellationToken cancellationToken = default);
+        Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, CancellationToken cancellationToken = default);
+        Task<Result> DeletePostAsync(Guid id, Guid userId, bool canDelete, CancellationToken cancellationToken = default);
+        Task<Result> LikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default);
+        Task<Result> UnlikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default);
     }
 
     public class PostService : IPostService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationService _notificationService;
 
-        public PostService(IUnitOfWork unitOfWork, IFileStorage fileStorage)
+        public PostService(IUnitOfWork unitOfWork, IFileStorage fileStorage, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _fileStorage = fileStorage;
+            _notificationService = notificationService;
         }
 
-        public async Task<Result<PostDto>> CreatePostAsync(Guid userId, CreatePostRequest request, Stream fileStream, string fileName, string contentType)
+        public async Task<Result<PostDto>> CreatePostAsync(Guid userId, CreatePostRequest request, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
         {
             MediaType mediaType = contentType.StartsWith("video") ? MediaType.Video : MediaType.Audio;
-            
-            var media = await _fileStorage.SaveFileAsync(fileStream, fileName, mediaType);
+
+            MediaObject media = await _fileStorage.SaveFileAsync(fileStream, fileName, mediaType);
             await _unitOfWork.MediaObjects.AddAsync(media);
 
-            var post = new Post
+            Visibility visibility = request.Visibility ?? Domain.Enums.Visibility.Public;
+            Post post = new Post
             {
                 AuthorId = userId,
                 ContentText = request.ContentText,
                 MediaType = mediaType,
                 MediaId = media.Id,
-                Media = media
+                Media = media,
+                Visibility = visibility
             };
 
             if (request.Tags != null)
             {
-                foreach (var tagName in request.Tags)
+                foreach (string tagName in request.Tags)
                 {
-                    var tag = await _unitOfWork.Tags.GetOrCreateByNameAsync(tagName);
+                    Tag tag = await _unitOfWork.Tags.GetOrCreateByNameAsync(tagName);
                     post.PostTags.Add(new PostTag { Tag = tag });
                 }
             }
 
             await _unitOfWork.Posts.AddAsync(post);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var result = await GetPostByIdAsync(post.Id);
+            Result<PostDto> result = await GetPostByIdAsync(post.Id, cancellationToken);
             return result;
         }
 
-        public async Task<Result<PostDto>> GetPostByIdAsync(Guid id)
+        public async Task<Result<PostDto>> GetPostByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var post = await _unitOfWork.Posts.GetByIdWithDetailsAsync(id);
+            Post? post = await _unitOfWork.Posts.GetByIdWithDetailsAsync(id);
 
             if (post == null)
                 return Result<PostDto>.Fail(new NotFoundError("POST_NOT_FOUND", "Post not found"));
 
-            var likes = await _unitOfWork.Reactions.CountByPostAndTypeAsync(id, ReactionType.Like);
-            var comments = await _unitOfWork.Comments.CountByPostIdAsync(id);
+            int likes = await _unitOfWork.Reactions.CountByPostAndTypeAsync(id, ReactionType.Like);
+            int comments = await _unitOfWork.Comments.CountByPostIdAsync(id);
 
             return Result<PostDto>.Success(new PostDto(
                 post.Id,
                 post.ContentText,
                 post.Media?.Url ?? "",
                 post.MediaType,
+                post.Visibility,
                 post.Author?.Username ?? "Unknown",
                 post.AuthorId,
                 post.CreatedAt,
@@ -89,14 +96,14 @@ namespace OneTake.Application.Services
             ));
         }
 
-        public async Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize)
+        public async Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, CancellationToken cancellationToken = default)
         {
             List<Post> posts;
             bool hasMore;
 
             if (!string.IsNullOrEmpty(tag))
             {
-                var result = await _unitOfWork.Posts.GetByTagWithCursorAsync(tag, cursor, pageSize);
+                (List<Post> Posts, bool HasMore) result = await _unitOfWork.Posts.GetByTagWithCursorAsync(tag, cursor, pageSize);
                 posts = result.Posts;
                 hasMore = result.HasMore;
 
@@ -107,28 +114,29 @@ namespace OneTake.Application.Services
             }
             else if (authorId.HasValue)
             {
-                var result = await _unitOfWork.Posts.GetByAuthorIdWithCursorAsync(authorId.Value, cursor, pageSize);
+                (List<Post> Posts, bool HasMore) result = await _unitOfWork.Posts.GetByAuthorIdWithCursorAsync(authorId.Value, cursor, pageSize);
                 posts = result.Posts;
                 hasMore = result.HasMore;
             }
             else
             {
-                var result = await _unitOfWork.Posts.GetPostsWithCursorAsync(cursor, pageSize);
+                (List<Post> Posts, bool HasMore) result = await _unitOfWork.Posts.GetPostsWithCursorAsync(cursor, pageSize);
                 posts = result.Posts;
                 hasMore = result.HasMore;
             }
 
-            var postDtos = new List<PostDto>();
-            foreach (var post in posts)
+            List<PostDto> postDtos = new List<PostDto>();
+            foreach (Post post in posts)
             {
-                var likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
-                var commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
+                int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
+                int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
 
                 postDtos.Add(new PostDto(
                     post.Id,
                     post.ContentText,
                     post.Media?.Url ?? "",
                     post.MediaType,
+                    post.Visibility,
                     post.Author?.Username ?? "Unknown",
                     post.AuthorId,
                     post.CreatedAt,
@@ -141,16 +149,47 @@ namespace OneTake.Application.Services
             string? nextCursor = null;
             if (hasMore && postDtos.Count > 0)
             {
-                var lastPost = posts.Last();
+                Post lastPost = posts.Last();
                 nextCursor = $"{lastPost.CreatedAt:O}|{lastPost.Id}";
             }
 
             return Result<PagedPostResponse>.Success(new PagedPostResponse(postDtos, nextCursor, hasMore));
         }
 
-        public async Task<Result> DeletePostAsync(Guid id, Guid userId, bool canDelete)
+        public async Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, CancellationToken cancellationToken = default)
         {
-            var post = await _unitOfWork.Posts.GetByIdAsync(id);
+            (List<Post> posts, bool hasMore) = await _unitOfWork.Posts.SearchAsync(query, cursor, pageSize);
+            List<PostDto> postDtos = new List<PostDto>();
+            foreach (Post post in posts)
+            {
+                int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
+                int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
+                postDtos.Add(new PostDto(
+                    post.Id,
+                    post.ContentText,
+                    post.Media?.Url ?? "",
+                    post.MediaType,
+                    post.Visibility,
+                    post.Author?.Username ?? "Unknown",
+                    post.AuthorId,
+                    post.CreatedAt,
+                    likeCount,
+                    commentCount,
+                    post.PostTags.Select(pt => pt.Tag!.Name).ToList()
+                ));
+            }
+            string? nextCursor = null;
+            if (hasMore && posts.Count > 0)
+            {
+                Post lastPost = posts.Last();
+                nextCursor = $"{lastPost.CreatedAt:O}|{lastPost.Id}";
+            }
+            return Result<PagedPostResponse>.Success(new PagedPostResponse(postDtos, nextCursor, hasMore));
+        }
+
+        public async Task<Result> DeletePostAsync(Guid id, Guid userId, bool canDelete, CancellationToken cancellationToken = default)
+        {
+            Post? post = await _unitOfWork.Posts.GetByIdAsync(id);
             if (post == null)
                 return Result.Fail(new NotFoundError("POST_NOT_FOUND", "Post not found"));
 
@@ -161,7 +200,7 @@ namespace OneTake.Application.Services
 
             if (post.MediaId.HasValue)
             {
-               var media = await _unitOfWork.MediaObjects.GetByIdAsync(post.MediaId.Value);
+                MediaObject? media = await _unitOfWork.MediaObjects.GetByIdAsync(post.MediaId.Value);
                if (media != null)
                {
                    await _fileStorage.DeleteFileAsync(media.Path);
@@ -170,36 +209,48 @@ namespace OneTake.Application.Services
             }
 
             _unitOfWork.Posts.Remove(post);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }
 
-        public async Task<Result> LikePostAsync(Guid postId, Guid userId)
+        public async Task<Result> LikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default)
         {
             if (await _unitOfWork.Reactions.ExistsByPostAndUserAsync(postId, userId, ReactionType.Like))
                 return Result.Success();
 
-            var reaction = new Reaction
+            Post? post = await _unitOfWork.Posts.GetByIdAsync(postId);
+            Reaction reaction = new Reaction
             {
                 PostId = postId,
                 UserId = userId,
                 Type = ReactionType.Like
             };
             await _unitOfWork.Reactions.AddAsync(reaction);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (post != null && post.AuthorId != userId)
+            {
+                _ = _notificationService.CreateAsync(
+                    post.AuthorId,
+                    Domain.Enums.NotificationType.LikeOnPost,
+                    "New like",
+                    "Someone liked your post",
+                    "post",
+                    postId);
+            }
 
             return Result.Success();
         }
 
-        public async Task<Result> UnlikePostAsync(Guid postId, Guid userId)
+        public async Task<Result> UnlikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default)
         {
-            var reaction = await _unitOfWork.Reactions.GetByPostAndUserAsync(postId, userId, ReactionType.Like);
-            
+            Reaction? reaction = await _unitOfWork.Reactions.GetByPostAndUserAsync(postId, userId, ReactionType.Like);
+
             if (reaction != null)
             {
                 _unitOfWork.Reactions.Remove(reaction);
-                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
             return Result.Success();

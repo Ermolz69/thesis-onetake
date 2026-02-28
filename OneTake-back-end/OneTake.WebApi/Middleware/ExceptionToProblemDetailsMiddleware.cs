@@ -31,9 +31,9 @@ namespace OneTake.WebApi.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            var traceId = Activity.Current?.Id ?? context.TraceIdentifier ?? Guid.NewGuid().ToString();
-            var requestPath = context.Request.Path;
-            var method = context.Request.Method;
+            string traceId = Activity.Current?.Id ?? context.TraceIdentifier ?? Guid.NewGuid().ToString();
+            Microsoft.AspNetCore.Http.PathString requestPath = context.Request.Path;
+            string method = context.Request.Method;
 
             ProblemDetails problemDetails;
             int statusCode;
@@ -94,7 +94,7 @@ namespace OneTake.WebApi.Middleware
             string requestPath,
             string method)
         {
-            var problemDetails = new ProblemDetails
+            ProblemDetails problemDetails = new ProblemDetails
             {
                 Type = statusCode switch
                 {

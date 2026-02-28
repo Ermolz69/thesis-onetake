@@ -28,7 +28,7 @@ namespace OneTake.Infrastructure.Repositories
         public virtual async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
-            foreach (var include in includes)
+            foreach (Expression<Func<T, object>> include in includes)
             {
                 query = query.Include(include);
             }
@@ -63,7 +63,7 @@ namespace OneTake.Infrastructure.Repositories
         public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
-            foreach (var include in includes)
+            foreach (Expression<Func<T, object>> include in includes)
             {
                 query = query.Include(include);
             }

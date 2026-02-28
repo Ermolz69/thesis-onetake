@@ -1,4 +1,4 @@
-import { PostsList } from '@/widgets/posts-list'
+import { PostsList } from '@/widgets/posts-list';
 
 export const PostsPage = () => {
   return (
@@ -6,6 +6,5 @@ export const PostsPage = () => {
       <h1 className="text-3xl font-bold text-fg-primary mb-8">Posts</h1>
       <PostsList />
     </div>
-  )
-}
-
+  );
+};

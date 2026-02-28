@@ -1,37 +1,34 @@
-import { Card, Badge, Button, HeartIcon, CommentIcon } from '@/shared/ui'
-import { routes } from '@/shared/config'
-import { useNavigate } from 'react-router-dom'
-import type { Post } from '../types'
-import { MediaType } from '../types'
+import { Card, Badge, Button, HeartIcon, CommentIcon, VideoPlayer } from '@/shared/ui';
+import { routes, resolveMediaUrl } from '@/shared/config';
+import { useNavigate, Link } from 'react-router-dom';
+import type { Post } from '@/entities/post/types';
+import { MediaType } from '@/entities/post/types';
 
 export interface PostCardProps {
-  post: Post
-  onLike?: (id: string) => void
-  onUnlike?: (id: string) => void
-  isLiked?: boolean
+  post: Post;
+  onLike?: (id: string) => void;
+  onUnlike?: (id: string) => void;
+  isLiked?: boolean;
 }
 
 export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(routes.postDetails(post.id))
-  }
+    navigate(routes.postDetails(post.id));
+  };
 
   const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (isLiked && onUnlike) {
-      onUnlike(post.id)
+      onUnlike(post.id);
     } else if (!isLiked && onLike) {
-      onLike(post.id)
+      onLike(post.id);
     }
-  }
+  };
 
   return (
-    <Card
-      className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={handleClick}
-    >
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleClick}>
       <div className="space-y-3">
         <div className="flex items-start justify-between">
           <div>
@@ -39,31 +36,30 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
               {post.contentText || 'Untitled'}
             </h3>
             <p className="text-sm text-fg-secondary mt-1">
-              by {post.authorName}
+              by{' '}
+              <Link
+                to={routes.profile(post.authorId)}
+                className="hover:underline text-fg-primary"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {post.authorName}
+              </Link>
             </p>
           </div>
-          {post.mediaType === MediaType.Video && (
-            <Badge variant="primary">Video</Badge>
-          )}
-          {post.mediaType === MediaType.Audio && (
-            <Badge variant="secondary">Audio</Badge>
-          )}
+          {post.mediaType === MediaType.Video && <Badge variant="primary">Video</Badge>}
+          {post.mediaType === MediaType.Audio && <Badge variant="default">Audio</Badge>}
         </div>
 
         {post.mediaUrl && (
           <div className="w-full aspect-video bg-bg-secondary rounded-md overflow-hidden">
             {post.mediaType === MediaType.Video ? (
-              <video
-                src={post.mediaUrl}
+              <VideoPlayer
+                src={resolveMediaUrl(post.mediaUrl)}
                 className="w-full h-full object-cover"
                 controls={false}
               />
             ) : (
-              <audio
-                src={post.mediaUrl}
-                className="w-full"
-                controls={false}
-              />
+              <audio src={resolveMediaUrl(post.mediaUrl)} className="w-full" controls={false} />
             )}
           </div>
         )}
@@ -81,9 +77,9 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <div className="flex items-center gap-4 text-sm text-fg-secondary">
             <span className="flex items-center gap-1">
-              <HeartIcon 
-                className="w-4 h-4" 
-                color={isLiked ? '#ef4444' : 'currentColor'} 
+              <HeartIcon
+                className="w-4 h-4"
+                color={isLiked ? '#ef4444' : 'currentColor'}
                 filled={isLiked}
               />
               {post.likeCount}
@@ -93,16 +89,11 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
               {post.commentCount}
             </span>
           </div>
-          <Button
-            variant={isLiked ? 'primary' : 'outline'}
-            size="sm"
-            onClick={handleLikeClick}
-          >
+          <Button variant={isLiked ? 'primary' : 'outline'} size="sm" onClick={handleLikeClick}>
             {isLiked ? 'Unlike' : 'Like'}
           </Button>
         </div>
       </div>
     </Card>
-  )
-}
-
+  );
+};

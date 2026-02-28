@@ -19,6 +19,8 @@ namespace OneTake.Infrastructure.Persistence
         public DbSet<Follow> Follows => Set<Follow>();
         public DbSet<Tag> Tags => Set<Tag>();
         public DbSet<PostTag> PostTags => Set<PostTag>();
+        public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

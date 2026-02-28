@@ -18,19 +18,19 @@ namespace OneTake.Infrastructure.Files
 
         public async Task<MediaObject> SaveFileAsync(Stream fileStream, string fileName, MediaType mediaType)
         {
-            var uploadsFolder = Path.Combine(_webRootPath, "media");
+            string uploadsFolder = Path.Combine(_webRootPath, "media");
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
-            var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            using (FileStream stream = new FileStream(filePath, FileMode.Create))
             {
                 await fileStream.CopyToAsync(stream);
             }
 
-            var relativeUrl = $"/media/{uniqueFileName}";
+            string relativeUrl = $"/media/{uniqueFileName}";
             
             return new MediaObject
             {

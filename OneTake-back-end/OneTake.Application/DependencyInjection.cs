@@ -12,6 +12,8 @@ namespace OneTake.Application
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IFollowService, FollowService>();
+            services.AddScoped<INotificationService, NotificationService>();
             return services;
         }
     }

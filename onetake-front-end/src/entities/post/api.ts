@@ -1,28 +1,58 @@
-import { http } from '@/shared/api'
-import { api } from '@/shared/config'
-import type { Post, PagedPostResponse } from './types'
+import { http } from '@/shared/api';
+import { api } from '@/shared/config';
+import type { Post, PagedPostResponse } from './types';
 
 export const postApi = {
   getPosts: async (params?: {
-    tag?: string
-    authorId?: string
-    cursor?: string
-    pageSize?: number
+    tag?: string;
+    authorId?: string;
+    cursor?: string;
+    pageSize?: number;
   }): Promise<PagedPostResponse> => {
-    const searchParams = new URLSearchParams()
-    if (params?.tag) searchParams.append('tag', params.tag)
-    if (params?.authorId) searchParams.append('authorId', params.authorId)
-    if (params?.cursor) searchParams.append('cursor', params.cursor)
-    if (params?.pageSize) searchParams.append('pageSize', params.pageSize.toString())
+    const searchParams = new URLSearchParams();
+    if (params?.tag) searchParams.append('tag', params.tag);
+    if (params?.authorId) searchParams.append('authorId', params.authorId);
+    if (params?.cursor) searchParams.append('cursor', params.cursor);
+    if (params?.pageSize) searchParams.append('pageSize', params.pageSize.toString());
 
-    const query = searchParams.toString()
-    const url = query ? `${api.endpoints.products.list}?${query}` : api.endpoints.products.list
+    const query = searchParams.toString();
+    const url = query ? `${api.endpoints.products.list}?${query}` : api.endpoints.products.list;
 
-    return http.get<PagedPostResponse>(url)
+    return http.get<PagedPostResponse>(url);
   },
 
   getPostById: async (id: string): Promise<Post> => {
-    return http.get<Post>(api.endpoints.products.details(id))
+    return http.get<Post>(api.endpoints.products.details(id));
+  },
+
+  getRecommended: async (limit = 10): Promise<Post[]> => {
+    const url = `${api.endpoints.products.list}/feed/recommended?limit=${limit}`;
+    return http.get<Post[]>(url);
+  },
+
+  getFollowingFeed: async (params?: {
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<PagedPostResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.cursor) searchParams.append('cursor', params.cursor);
+    if (params?.pageSize) searchParams.append('pageSize', params.pageSize.toString());
+    const query = searchParams.toString();
+    const url = `${api.endpoints.products.list}/feed/following${query ? `?${query}` : ''}`;
+    return http.get<PagedPostResponse>(url);
+  },
+
+  searchPosts: async (params: {
+    q: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<PagedPostResponse> => {
+    const searchParams = new URLSearchParams();
+    searchParams.append('q', params.q);
+    if (params.cursor) searchParams.append('cursor', params.cursor);
+    if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString());
+    const url = `${api.endpoints.products.list}/search?${searchParams.toString()}`;
+    return http.get<PagedPostResponse>(url);
   },
 
   createPost: async (data: FormData): Promise<Post> => {
@@ -30,19 +60,18 @@ export const postApi = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-    })
+    });
   },
 
   deletePost: async (id: string): Promise<void> => {
-    return http.delete(api.endpoints.products.delete(id))
+    return http.delete(api.endpoints.products.delete(id));
   },
 
   likePost: async (id: string): Promise<void> => {
-    return http.post(api.endpoints.products.like(id))
+    return http.post(api.endpoints.products.like(id));
   },
 
   unlikePost: async (id: string): Promise<void> => {
-    return http.delete(api.endpoints.products.unlike(id))
+    return http.delete(api.endpoints.products.unlike(id));
   },
-}
-
+};

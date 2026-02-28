@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OneTake.Application.Common.Interfaces
@@ -12,7 +13,9 @@ namespace OneTake.Application.Common.Interfaces
         IProfileRepository Profiles { get; }
         IMediaObjectRepository MediaObjects { get; }
         IFollowRepository Follows { get; }
-        Task<int> SaveChangesAsync();
+        INotificationRepository Notifications { get; }
+        IRefreshTokenRepository RefreshTokens { get; }
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
 

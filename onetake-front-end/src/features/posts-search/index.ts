@@ -1,3 +1,2 @@
-export { PostsSearch } from './ui/PostsSearch'
-export type { PostsSearchProps } from './ui/PostsSearch'
-
+export { PostsSearch } from './ui/PostsSearch';
+export type { PostsSearchProps } from './ui/PostsSearch';

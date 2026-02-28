@@ -1,61 +1,78 @@
-import { useEffect, useState } from 'react'
-import { PostsSearch } from '@/features/posts-search'
-import { PostsFilter, type FilterOptions } from '@/features/posts-filter'
-import { PostCard, usePostStore, type Post } from '@/entities/post'
-import { Loader, Pagination } from '@/shared/ui'
+import { useEffect, useState } from 'react';
+import { PostsSearch } from '@/features/posts-search';
+import { PostsFilter, type FilterOptions } from '@/features/posts-filter';
+import { PostCard, usePostStore, postApi } from '@/entities/post';
+import { Loader, Pagination, ErrorMessage } from '@/shared/ui';
 
 export const PostsList = () => {
-  const { posts, isLoading, error, hasMore, nextCursor, fetchPosts, likePost, unlikePost } = usePostStore()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<FilterOptions>({})
-  const [currentPage, setCurrentPage] = useState(1)
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
+  const { posts, isLoading, error, nextCursor, fetchPosts, likePost, unlikePost } = usePostStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<{
+    posts: Awaited<ReturnType<typeof postApi.searchPosts>>['posts'];
+    nextCursor: string | null;
+    hasMore: boolean;
+  } | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    if (searchQuery) return;
     fetchPosts({
       ...filters,
       cursor: currentPage > 1 ? nextCursor || undefined : undefined,
       pageSize: 10,
-    })
-  }, [filters, currentPage, nextCursor, fetchPosts])
+    });
+  }, [searchQuery, filters, currentPage, nextCursor, fetchPosts]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
+    }
+    setSearchLoading(true);
+    postApi
+      .searchPosts({ q: searchQuery.trim(), pageSize: 10 })
+      .then((r) =>
+        setSearchResults({ posts: r.posts, nextCursor: r.nextCursor, hasMore: r.hasMore })
+      )
+      .catch(() => setSearchResults({ posts: [], nextCursor: null, hasMore: false }))
+      .finally(() => setSearchLoading(false));
+  }, [searchQuery]);
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    setCurrentPage(1)
-    fetchPosts({
-      ...filters,
-      pageSize: 10,
-    })
-  }
+    setSearchQuery(query);
+    setCurrentPage(1);
+    if (!query) setSearchResults(null);
+  };
 
   const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters)
-    setCurrentPage(1)
-  }
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
 
   const handleLike = (id: string) => {
-    likePost(id)
-    setLikedPosts((prev) => new Set(prev).add(id))
-  }
+    likePost(id);
+    setLikedPosts((prev) => new Set(prev).add(id));
+  };
 
   const handleUnlike = (id: string) => {
-    unlikePost(id)
+    unlikePost(id);
     setLikedPosts((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
 
-  const filteredPosts = searchQuery
-    ? posts.filter((p) =>
-        p.contentText.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : posts
-
-  const totalPages = Math.ceil(filteredPosts.length / 10) || 1
-  const paginatedPosts = filteredPosts.slice((currentPage - 1) * 10, currentPage * 10)
+  const isSearchMode = searchQuery.trim() !== '';
+  const displayPosts = isSearchMode && searchResults ? searchResults.posts : posts;
+  const displayLoading = isSearchMode ? searchLoading : isLoading;
+  const totalPages = Math.ceil(displayPosts.length / 10) || 1;
+  const paginatedPosts = isSearchMode
+    ? displayPosts
+    : displayPosts.slice((currentPage - 1) * 10, currentPage * 10);
 
   return (
     <div className="space-y-6">
@@ -64,25 +81,19 @@ export const PostsList = () => {
         <PostsFilter onFilterChange={handleFilterChange} />
       </div>
 
-      {isLoading && (
+      {displayLoading && (
         <div className="flex justify-center py-12">
           <Loader size="lg" />
         </div>
       )}
 
-      {error && (
-        <div className="p-4 bg-error/10 border border-error rounded-md text-error">
-          {error}
-        </div>
+      {error && <ErrorMessage message={error} />}
+
+      {!displayLoading && !error && paginatedPosts.length === 0 && (
+        <div className="text-center py-12 text-fg-secondary">No posts found</div>
       )}
 
-      {!isLoading && !error && paginatedPosts.length === 0 && (
-        <div className="text-center py-12 text-fg-secondary">
-          No posts found
-        </div>
-      )}
-
-      {!isLoading && !error && paginatedPosts.length > 0 && (
+      {!displayLoading && !error && paginatedPosts.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedPosts.map((post) => (
@@ -96,7 +107,7 @@ export const PostsList = () => {
             ))}
           </div>
 
-          {totalPages > 1 && (
+          {!isSearchMode && totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -106,6 +117,5 @@ export const PostsList = () => {
         </>
       )}
     </div>
-  )
-}
-
+  );
+};
