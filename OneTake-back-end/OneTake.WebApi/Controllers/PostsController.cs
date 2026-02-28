@@ -53,7 +53,9 @@ namespace OneTake.WebApi.Controllers
         public async Task<IActionResult> Search([FromQuery] string? q, [FromQuery] string? cursor, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(q))
+            {
                 return Ok(new PagedPostResponse(new List<PostDto>(), null, false));
+            }
 
             Result<PagedPostResponse> result = await _postService.SearchPostsAsync(q.Trim(), cursor, pageSize, cancellationToken);
             if (result.IsSuccess)
@@ -261,7 +263,9 @@ namespace OneTake.WebApi.Controllers
                 {
                     Result<PostDto> postResult = await _postService.GetPostByIdAsync(postId, cancellationToken);
                     if (postResult.IsSuccess && postResult.Value != null && postResult.Value.Visibility == Visibility.Public)
+                    {
                         posts.Add(postResult.Value);
+                    }
                 }
                 return Ok(posts);
             }

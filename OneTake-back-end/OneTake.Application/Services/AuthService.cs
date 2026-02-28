@@ -166,11 +166,17 @@ namespace OneTake.Application.Services
 
         public async Task RevokeRefreshTokenAsync(string? refreshTokenFromCookie, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(refreshTokenFromCookie)) return;
+            if (string.IsNullOrWhiteSpace(refreshTokenFromCookie))
+            {
+                return;
+            }
 
             string tokenHash = _refreshTokenHasher.Hash(refreshTokenFromCookie);
             RefreshToken? existing = await _unitOfWork.RefreshTokens.FindByTokenHashAsync(tokenHash);
-            if (existing == null) return;
+            if (existing == null)
+            {
+                return;
+            }
 
             existing.RevokedAt = DateTime.UtcNow;
             _unitOfWork.RefreshTokens.Update(existing);

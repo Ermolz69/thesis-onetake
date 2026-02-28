@@ -31,7 +31,9 @@ namespace OneTake.IntegrationTests.Controllers
             HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", new { });
 
             if (response.StatusCode != HttpStatusCode.BadRequest)
+            {
                 return;
+            }
 
             string json = await response.Content.ReadAsStringAsync();
             using JsonDocument doc = JsonDocument.Parse(json);

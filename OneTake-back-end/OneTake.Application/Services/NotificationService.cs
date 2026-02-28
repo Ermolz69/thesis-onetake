@@ -78,9 +78,14 @@ namespace OneTake.Application.Services
         {
             Notification? notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
             if (notification == null)
+            {
                 return Result.Fail(new NotFoundError("NOTIFICATION_NOT_FOUND", "Notification not found"));
+            }
+
             if (notification.UserId != userId)
+            {
                 return Result.Fail(new ForbiddenError("FORBIDDEN", "Not your notification"));
+            }
             notification.IsRead = true;
             _unitOfWork.Notifications.Update(notification);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -23,7 +23,9 @@ namespace OneTake.Infrastructure.Uploads
                 ?? Path.Combine(Path.GetTempPath(), "onetake_uploads");
             _basePath = uploadsPath;
             if (!Directory.Exists(_basePath))
+            {
                 Directory.CreateDirectory(_basePath);
+            }
         }
 
         private string GetSessionPath(string uploadId) => Path.Combine(_basePath, uploadId);
@@ -32,7 +34,9 @@ namespace OneTake.Infrastructure.Uploads
         {
             string path = GetSessionPath(meta.UploadId);
             if (Directory.Exists(path))
+            {
                 throw new InvalidOperationException($"Session {meta.UploadId} already exists");
+            }
             Directory.CreateDirectory(path);
             string metaPath = Path.Combine(path, "meta.json");
             string json = JsonSerializer.Serialize(meta);
@@ -44,7 +48,9 @@ namespace OneTake.Infrastructure.Uploads
         {
             string metaPath = Path.Combine(GetSessionPath(uploadId), "meta.json");
             if (!File.Exists(metaPath))
+            {
                 return null;
+            }
             string json = await File.ReadAllTextAsync(metaPath, cancellationToken);
             return JsonSerializer.Deserialize<UploadSessionMeta>(json);
         }
@@ -53,7 +59,10 @@ namespace OneTake.Infrastructure.Uploads
         {
             var path = GetSessionPath(uploadId);
             if (!Directory.Exists(path))
+            {
                 throw new InvalidOperationException($"Session {uploadId} not found");
+            }
+
             var partPath = Path.Combine(path, $"part_{partIndex}");
             await using var file = new FileStream(partPath, FileMode.Create, FileAccess.Write, FileShare.None);
             await data.CopyToAsync(file, cancellationToken);
@@ -63,7 +72,9 @@ namespace OneTake.Infrastructure.Uploads
         {
             string path = GetSessionPath(uploadId);
             if (!Directory.Exists(path))
+            {
                 return Task.FromResult<IReadOnlyList<int>>(Array.Empty<int>());
+            }
             List<int> indices = Directory.GetFiles(path, "part_*")
                 .Select(f => int.TryParse(Path.GetFileName(f).Replace("part_", ""), out var i) ? i : -1)
                 .Where(i => i >= 0)
@@ -76,12 +87,17 @@ namespace OneTake.Infrastructure.Uploads
         {
             var path = GetSessionPath(uploadId);
             if (!Directory.Exists(path))
+            {
                 throw new InvalidOperationException($"Session {uploadId} not found");
+            }
+
             var partFiles = Directory.GetFiles(path, "part_*")
                 .OrderBy(f => int.Parse(Path.GetFileName(f).Replace("part_", "")))
                 .ToArray();
             if (partFiles.Length == 0)
+            {
                 throw new InvalidOperationException($"No parts found for session {uploadId}");
+            }
             var mergedPath = Path.Combine(path, "merged.tmp");
             await using (var merged = new FileStream(mergedPath, FileMode.Create, FileAccess.Write, FileShare.None))
             {

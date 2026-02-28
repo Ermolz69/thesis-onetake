@@ -91,14 +91,20 @@ namespace OneTake.Application.Services
         {
             Comment? comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
             if (comment == null || comment.PostId != postId)
+            {
                 return Result.Fail(new NotFoundError("COMMENT_NOT_FOUND", "Comment not found"));
+            }
 
             Post? post = await _unitOfWork.Posts.GetByIdAsync(postId);
             if (post == null)
+            {
                 return Result.Fail(new NotFoundError("POST_NOT_FOUND", "Post not found"));
+            }
 
             if (!canDeleteAny && comment.UserId != userId && post.AuthorId != userId)
+            {
                 return Result.Fail(new ForbiddenError("FORBIDDEN", "You do not have permission to delete this comment"));
+            }
 
             _unitOfWork.Comments.Remove(comment);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

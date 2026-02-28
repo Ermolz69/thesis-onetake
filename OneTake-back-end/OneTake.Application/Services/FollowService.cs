@@ -37,15 +37,21 @@ namespace OneTake.Application.Services
         public async Task<Result> FollowAsync(Guid followerId, Guid followedId, CancellationToken cancellationToken = default)
         {
             if (followerId == followedId)
+            {
                 return Result.Fail(new ValidationError("VALIDATION", "Cannot follow yourself"));
+            }
 
             User? userExists = await _unitOfWork.Users.GetByIdAsync(followedId);
             if (userExists == null)
+            {
                 return Result.Fail(new NotFoundError("USER_NOT_FOUND", "User not found"));
+            }
 
             Follow? existing = await _unitOfWork.Follows.GetByFollowerAndFollowedAsync(followerId, followedId);
             if (existing != null)
+            {
                 return Result.Success();
+            }
 
             Follow follow = new Follow { FollowerId = followerId, FollowedId = followedId };
             await _unitOfWork.Follows.AddAsync(follow);
@@ -109,7 +115,9 @@ namespace OneTake.Application.Services
             List<Follow> following = await _unitOfWork.Follows.GetFollowingAsync(userId);
             List<Guid> authorIds = following.Select(f => f.FollowedId).ToList();
             if (authorIds.Count == 0)
+            {
                 return Result<PagedPostResponse>.Success(new PagedPostResponse(new List<PostDto>(), null, false));
+            }
 
             (List<Post> posts, bool hasMore) = await _unitOfWork.Posts.GetByAuthorIdsWithCursorAsync(authorIds, cursor, pageSize);
             List<PostDto> postDtos = new List<PostDto>();

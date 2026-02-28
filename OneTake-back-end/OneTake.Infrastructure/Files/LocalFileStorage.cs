@@ -20,7 +20,9 @@ namespace OneTake.Infrastructure.Files
         {
             string uploadsFolder = Path.Combine(_webRootPath, "media");
             if (!Directory.Exists(uploadsFolder))
+            {
                 Directory.CreateDirectory(uploadsFolder);
+            }
 
             string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -31,7 +33,7 @@ namespace OneTake.Infrastructure.Files
             }
 
             string relativeUrl = $"/media/{uniqueFileName}";
-            
+
             return new MediaObject
             {
                 Id = Guid.NewGuid(),

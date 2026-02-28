@@ -76,7 +76,9 @@ namespace OneTake.Application.Services
             Post? post = await _unitOfWork.Posts.GetByIdWithDetailsAsync(id);
 
             if (post == null)
+            {
                 return Result<PostDto>.Fail(new NotFoundError("POST_NOT_FOUND", "Post not found"));
+            }
 
             int likes = await _unitOfWork.Reactions.CountByPostAndTypeAsync(id, ReactionType.Like);
             int comments = await _unitOfWork.Comments.CountByPostIdAsync(id);
@@ -191,7 +193,9 @@ namespace OneTake.Application.Services
         {
             Post? post = await _unitOfWork.Posts.GetByIdAsync(id);
             if (post == null)
+            {
                 return Result.Fail(new NotFoundError("POST_NOT_FOUND", "Post not found"));
+            }
 
             if (post.AuthorId != userId && !canDelete)
             {
@@ -201,11 +205,11 @@ namespace OneTake.Application.Services
             if (post.MediaId.HasValue)
             {
                 MediaObject? media = await _unitOfWork.MediaObjects.GetByIdAsync(post.MediaId.Value);
-               if (media != null)
-               {
-                   await _fileStorage.DeleteFileAsync(media.Path);
-                   _unitOfWork.MediaObjects.Remove(media);
-               }
+                if (media != null)
+                {
+                    await _fileStorage.DeleteFileAsync(media.Path);
+                    _unitOfWork.MediaObjects.Remove(media);
+                }
             }
 
             _unitOfWork.Posts.Remove(post);
@@ -217,7 +221,9 @@ namespace OneTake.Application.Services
         public async Task<Result> LikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default)
         {
             if (await _unitOfWork.Reactions.ExistsByPostAndUserAsync(postId, userId, ReactionType.Like))
+            {
                 return Result.Success();
+            }
 
             Post? post = await _unitOfWork.Posts.GetByIdAsync(postId);
             Reaction reaction = new Reaction

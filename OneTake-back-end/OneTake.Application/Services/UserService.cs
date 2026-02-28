@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using OneTake.Application.Common.Errors;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Application.Common.Results;
-using System.Collections.Generic;
 using OneTake.Application.DTOs.Users;
 using OneTake.Domain.Entities;
 

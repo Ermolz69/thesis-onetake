@@ -38,7 +38,7 @@ namespace OneTake.IntegrationTests.Database
             await context.SaveChangesAsync();
 
             var savedUser = await context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
-            
+
             Assert.NotNull(savedUser);
             Assert.Equal(user.Username, savedUser.Username);
             Assert.Equal(user.Email, savedUser.Email);
@@ -51,7 +51,7 @@ namespace OneTake.IntegrationTests.Database
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             var users = await context.Users.ToListAsync();
-            
+
             Assert.NotNull(users);
         }
     }

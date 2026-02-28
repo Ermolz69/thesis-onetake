@@ -17,7 +17,9 @@ public class CurrentRequestContext : ICurrentRequestContext
     {
         HttpContext? context = _httpContextAccessor.HttpContext;
         if (context?.Items[SessionIdMiddleware.SessionIdItemKey] is string sessionId)
+        {
             return sessionId;
+        }
         return Guid.NewGuid().ToString("N");
     }
 

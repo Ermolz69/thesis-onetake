@@ -32,7 +32,7 @@ namespace OneTake.Infrastructure
             services.AddScoped<IAppDbContext, AppDbContext>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            
+
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<ICommentRepository, CommentRepository>();
@@ -50,7 +50,7 @@ namespace OneTake.Infrastructure
             services.AddSingleton<IRecommendationsClient, RecoGrpcClient>();
             services.AddScoped<IFileStorage>(provider =>
             {
-                string? webRootPath = configuration["WebRootPath"] 
+                string? webRootPath = configuration["WebRootPath"]
                     ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 return new LocalFileStorage(webRootPath);
             });

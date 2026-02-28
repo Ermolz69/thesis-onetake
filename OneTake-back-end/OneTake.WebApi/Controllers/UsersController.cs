@@ -34,7 +34,9 @@ namespace OneTake.WebApi.Controllers
             Guid? viewerId = null;
             string? viewerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (Guid.TryParse(viewerIdStr, out Guid v))
+            {
                 viewerId = v;
+            }
             Result<ProfileDto> result = await _userService.GetProfileAsync(id, viewerId, cancellationToken);
             if (result.IsSuccess)
             {

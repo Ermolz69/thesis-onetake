@@ -19,12 +19,18 @@ internal sealed class ProcessedMediaResult : IProcessedMediaResult
         FileName = fileName;
         ContentType = contentType;
         if (tempPathsToDelete != null)
+        {
             _tempPaths.AddRange(tempPathsToDelete);
+        }
     }
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         try
         {
             Stream?.Dispose();
@@ -36,7 +42,9 @@ internal sealed class ProcessedMediaResult : IProcessedMediaResult
                 try
                 {
                     if (File.Exists(path))
+                    {
                         File.Delete(path);
+                    }
                 }
                 catch (Exception) { /* Best-effort cleanup; do not throw from Dispose */ }
             }

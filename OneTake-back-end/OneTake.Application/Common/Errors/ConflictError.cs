@@ -27,11 +27,19 @@ namespace OneTake.Application.Common.Errors
 
             problemDetails.Extensions["errorCode"] = ErrorCode;
             if (!string.IsNullOrEmpty(traceId))
+            {
                 problemDetails.Extensions["traceId"] = traceId;
+            }
+
             if (!string.IsNullOrEmpty(requestPath))
+            {
                 problemDetails.Extensions["requestPath"] = requestPath;
+            }
+
             if (!string.IsNullOrEmpty(method))
+            {
                 problemDetails.Extensions["method"] = method;
+            }
 
             return problemDetails;
         }

@@ -16,9 +16,9 @@ namespace OneTake.UnitTests.Services
         public void Hash_ShouldReturnHash_WhenPasswordProvided()
         {
             var password = "TestPassword123";
-            
+
             var hash = _hasher.Hash(password);
-            
+
             Assert.NotNull(hash);
             Assert.NotEmpty(hash);
             Assert.NotEqual(password, hash);
@@ -28,10 +28,10 @@ namespace OneTake.UnitTests.Services
         public void Hash_ShouldReturnDifferentHash_WhenCalledTwice()
         {
             var password = "TestPassword123";
-            
+
             var hash1 = _hasher.Hash(password);
             var hash2 = _hasher.Hash(password);
-            
+
             Assert.NotEqual(hash1, hash2);
         }
 
@@ -40,9 +40,9 @@ namespace OneTake.UnitTests.Services
         {
             var password = "TestPassword123";
             var hash = _hasher.Hash(password);
-            
+
             var result = _hasher.Verify(password, hash);
-            
+
             Assert.True(result);
         }
 
@@ -52,9 +52,9 @@ namespace OneTake.UnitTests.Services
             var password = "TestPassword123";
             var wrongPassword = "WrongPassword123";
             var hash = _hasher.Hash(password);
-            
+
             var result = _hasher.Verify(wrongPassword, hash);
-            
+
             Assert.False(result);
         }
 

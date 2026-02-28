@@ -39,12 +39,12 @@ namespace OneTake.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(cursor))
             {
                 string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 && 
+                if (cursorParts.Length == 2 &&
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
                 {
-                    query = query.Where(p => 
-                        p.CreatedAt < cursorDate || 
+                    query = query.Where(p =>
+                        p.CreatedAt < cursorDate ||
                         (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
                 }
             }
@@ -76,12 +76,12 @@ namespace OneTake.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(cursor))
             {
                 string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 && 
+                if (cursorParts.Length == 2 &&
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
                 {
-                    query = query.Where(p => 
-                        p.CreatedAt < cursorDate || 
+                    query = query.Where(p =>
+                        p.CreatedAt < cursorDate ||
                         (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
                 }
             }
@@ -103,7 +103,9 @@ namespace OneTake.Infrastructure.Repositories
         {
             List<Guid> idList = authorIds.ToList();
             if (idList.Count == 0)
+            {
                 return (new List<Post>(), false);
+            }
 
             IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
@@ -133,7 +135,9 @@ namespace OneTake.Infrastructure.Repositories
 
             bool hasMore = posts.Count > pageSize;
             if (hasMore)
+            {
                 posts = posts.Take(pageSize).ToList();
+            }
 
             return (posts, hasMore);
         }
@@ -152,12 +156,12 @@ namespace OneTake.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(cursor))
             {
                 string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 && 
+                if (cursorParts.Length == 2 &&
                     DateTime.TryParse(cursorParts[0], out var cursorDate) &&
                     Guid.TryParse(cursorParts[1], out var cursorId))
                 {
-                    query = query.Where(p => 
-                        p.CreatedAt < cursorDate || 
+                    query = query.Where(p =>
+                        p.CreatedAt < cursorDate ||
                         (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
                 }
             }
@@ -178,7 +182,9 @@ namespace OneTake.Infrastructure.Repositories
         public async Task<(List<Post> Posts, bool HasMore)> SearchAsync(string query, string? cursor, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(query))
+            {
                 return (new List<Post>(), false);
+            }
 
             string term = query.Trim();
             string pattern = $"%{term}%";
@@ -215,7 +221,9 @@ namespace OneTake.Infrastructure.Repositories
 
             bool hasMore = posts.Count > pageSize;
             if (hasMore)
+            {
                 posts = posts.Take(pageSize).ToList();
+            }
 
             return (posts, hasMore);
         }

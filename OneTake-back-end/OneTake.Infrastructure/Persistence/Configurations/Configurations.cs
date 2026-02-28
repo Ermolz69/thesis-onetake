@@ -35,7 +35,7 @@ namespace OneTake.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Follow> builder)
         {
             builder.HasIndex(f => new { f.FollowerId, f.FollowedId }).IsUnique();
-            
+
             builder.HasOne(f => f.Follower)
                 .WithMany(u => u.Following)
                 .HasForeignKey(f => f.FollowerId)

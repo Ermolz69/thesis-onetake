@@ -16,13 +16,17 @@ public class SessionIdMiddleware
         string? sessionId = context.Request.Headers[SessionIdHeaderName].FirstOrDefault()
             ?? context.Request.Cookies[SessionIdHeaderName];
         if (string.IsNullOrWhiteSpace(sessionId))
+        {
             sessionId = Guid.NewGuid().ToString("N");
+        }
 
         context.Items[SessionIdItemKey] = sessionId;
         context.Response.OnStarting(() =>
         {
             if (!context.Response.Headers.ContainsKey(SessionIdHeaderName))
+            {
                 context.Response.Headers.Append(SessionIdHeaderName, sessionId);
+            }
             return Task.CompletedTask;
         });
 

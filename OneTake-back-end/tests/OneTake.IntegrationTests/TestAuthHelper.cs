@@ -30,9 +30,14 @@ namespace OneTake.IntegrationTests
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
             if (root.TryGetProperty("accessToken", out JsonElement tokenProp))
+            {
                 return tokenProp.GetString() ?? throw new InvalidOperationException("accessToken is null");
+            }
+
             if (root.TryGetProperty("AccessToken", out tokenProp))
+            {
                 return tokenProp.GetString() ?? throw new InvalidOperationException("AccessToken is null");
+            }
             throw new InvalidOperationException("No accessToken in response: " + json);
         }
 

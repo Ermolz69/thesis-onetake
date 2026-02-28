@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useContext } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { userApi, type Profile } from '@/entities/user';
 import { postApi, type Post } from '@/entities/post';
@@ -55,7 +55,7 @@ export const ProfilePage = () => {
   const auth = useContext(AuthContext);
   const currentUser = auth?.user ?? null;
 
-  const loadProfile = () => {
+  const loadProfile = useCallback(() => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -66,11 +66,11 @@ export const ProfilePage = () => {
       })
       .catch(() => setError('Failed to load profile'))
       .finally(() => setLoading(false));
-  };
+  }, [id]);
 
   useEffect(() => {
     loadProfile();
-  }, [id]);
+  }, [loadProfile]);
 
   const sortedPosts = useMemo(() => {
     if (sort === 'newest') {

@@ -44,7 +44,9 @@ namespace OneTake.Infrastructure.Repositories
             List<Notification> items = await query.Take(pageSize + 1).ToListAsync();
             bool hasMore = items.Count > pageSize;
             if (hasMore)
+            {
                 items = items.Take(pageSize).ToList();
+            }
 
             return (items, hasMore);
         }

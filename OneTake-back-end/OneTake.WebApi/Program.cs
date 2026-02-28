@@ -30,7 +30,7 @@ builder.Services.AddControllers()
                     kvp => kvp.Key,
                     kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
                 );
-            
+
             ValidationProblemDetails problemDetails = new ValidationProblemDetails(errors)
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
@@ -57,7 +57,7 @@ builder.Services.AddSwaggerGen(options =>
         Title = "OneTake API",
         Version = "v1"
     });
-    
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {

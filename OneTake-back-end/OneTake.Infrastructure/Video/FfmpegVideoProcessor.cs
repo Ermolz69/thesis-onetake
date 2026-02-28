@@ -28,13 +28,17 @@ public sealed class FfmpegVideoProcessor : IVideoProcessor
     {
         string tempIn = Path.Combine(Path.GetTempPath(), $"upload_{Guid.NewGuid():N}{Path.GetExtension(sourceFileName) ?? ".bin"}");
         await using (FileStream fs = File.Create(tempIn))
+        {
             await source.CopyToAsync(fs, cancellationToken);
+        }
 
         bool applyTrim = trimStartMs.HasValue && trimEndMs.HasValue
             && trimStartMs.Value >= 0 && trimEndMs.Value > trimStartMs.Value;
 
         if (!applyTrim)
+        {
             return new ProcessedMediaResult(File.OpenRead(tempIn), sourceFileName, sourceContentType, new[] { tempIn });
+        }
 
         string tempOut = Path.Combine(Path.GetTempPath(), $"upload_trimmed_{Guid.NewGuid():N}.mp4");
         try
@@ -68,7 +72,17 @@ public sealed class FfmpegVideoProcessor : IVideoProcessor
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "ffmpeg trim failed; using untrimmed file");
-            if (File.Exists(tempOut)) try { File.Delete(tempOut); } catch { }
+            if (File.Exists(tempOut))
+            {
+                try
+                {
+                    File.Delete(tempOut);
+                }
+                catch
+                {
+                    /* best-effort */
+                }
+            }
             return new ProcessedMediaResult(File.OpenRead(tempIn), sourceFileName, sourceContentType, new[] { tempIn });
         }
     }

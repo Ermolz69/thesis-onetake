@@ -36,3 +36,6 @@ include = [
     "services",
     "contracts",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

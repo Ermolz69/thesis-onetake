@@ -69,12 +69,20 @@ namespace OneTake.WebApi.Controllers
             Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             UploadSessionMeta? meta = await _uploadStore.GetSessionAsync(uploadId, cancellationToken);
             if (meta == null)
+            {
                 return NotFound();
+            }
+
             if (meta.UserId != userId)
+            {
                 return Forbid();
+            }
+
             int totalParts = (int)((meta.TotalSize + ChunkSizeBytes - 1) / ChunkSizeBytes);
             if (partIndex < 0 || partIndex >= totalParts)
+            {
                 return BadRequest();
+            }
             await _uploadStore.SavePartAsync(uploadId, partIndex, Request.Body, cancellationToken);
             return NoContent();
         }
@@ -85,9 +93,15 @@ namespace OneTake.WebApi.Controllers
             Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             UploadSessionMeta? meta = await _uploadStore.GetSessionAsync(uploadId, cancellationToken);
             if (meta == null)
+            {
                 return NotFound();
+            }
+
             if (meta.UserId != userId)
+            {
                 return Forbid();
+            }
+
             IReadOnlyList<int> indices = await _uploadStore.GetUploadedPartIndicesAsync(uploadId, cancellationToken);
             int totalParts = (int)((meta.TotalSize + ChunkSizeBytes - 1) / ChunkSizeBytes);
             return Ok(new UploadStatusResponse(uploadId, totalParts, indices));
@@ -99,9 +113,14 @@ namespace OneTake.WebApi.Controllers
             Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             UploadSessionMeta? meta = await _uploadStore.GetSessionAsync(uploadId, cancellationToken);
             if (meta == null)
+            {
                 return NotFound();
+            }
+
             if (meta.UserId != userId)
+            {
                 return Forbid();
+            }
 
             Stream? mergedStream = null;
             IProcessedMediaResult? processed = null;
