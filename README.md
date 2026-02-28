@@ -38,18 +38,18 @@ See each project’s **README.md** for setup, config, and API details.
 
 ---
 
-## Сброс Docker и БД с нуля
+## Resetting Docker and database
 
-Если авторизация падает или БД в битом состоянии — пересоздать всё:
+If auth fails or the database is in a bad state, recreate everything from scratch.
 
-**Из корня репо (`thesis`):**
+**From repo root (`thesis`):**
 
 ```bash
 docker compose down -v
 docker compose up -d postgres clickhouse
 ```
 
-Подожди 10–15 секунд, пока Postgres и ClickHouse поднимутся, затем примени миграции и запусти бэкенд:
+Wait 10–15 seconds for Postgres and ClickHouse to start, then apply migrations and run the backend:
 
 ```bash
 cd OneTake-back-end
@@ -57,9 +57,9 @@ dotnet ef database update --project OneTake.Infrastructure --startup-project One
 dotnet run --project OneTake.WebApi
 ```
 
-Параметры подключения к Postgres (должны совпадать с `appsettings.json`): хост `localhost`, порт `5432`, БД `onetake`, пользователь/пароль `postgres` / `postgres`. При необходимости задай в `.env` в корне: `POSTGRES_PASSWORD=postgres`.
+Postgres connection (must match `appsettings.json`): host `localhost`, port `5432`, database `onetake`, user/password `postgres` / `postgres`. If needed, set in root `.env`: `POSTGRES_PASSWORD=postgres`.
 
-ClickHouse в compose слушает на хосте порты **8124** (HTTP) и **9001** (native). При запуске Python-сервисов на хосте укажи в `OneTakeAnalytics/.env`: `CLICKHOUSE_PORT=9001`. Если видишь в логах ClickHouse «Address already in use», выполни `docker compose down`, затем снова `docker compose up -d postgres clickhouse`.
+ClickHouse in compose listens on host ports **8124** (HTTP) and **9001** (native). When running Python services on the host, set in `OneTakeAnalytics/.env`: `CLICKHOUSE_PORT=9001`. If you see ClickHouse "Address already in use", run `docker compose down`, then `docker compose up -d postgres clickhouse` again.
 
 ---
 

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# .env в корені OneTakeAnalytics
+# .env at OneTakeAnalytics root (one level above services/analytics_ingest)
 _env_path = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(_env_path)
 

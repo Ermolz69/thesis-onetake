@@ -1,5 +1,5 @@
-# Сброс контейнеров и volumes, подъём Postgres + ClickHouse с нуля.
-# Запускать из корня репо (thesis): .\scripts\reset-docker.ps1
+# Reset containers and volumes, bring up Postgres + ClickHouse from scratch.
+# Run from repo root (thesis): .\scripts\reset-docker.ps1
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

@@ -79,8 +79,8 @@ TestResults/
 *.key
 secrets/
 *.secrets.*
-
-# Archives (optional — раскомментуй якщо не хочеш архіви в репо)
+.cursorignore
+# Archives
 # *.zip
 # *.tar
 # *.tar.gz
