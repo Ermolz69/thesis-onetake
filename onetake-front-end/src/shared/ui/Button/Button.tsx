@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/shared/lib';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'solid' | 'soft' | 'outline' | 'ghost' | 'primary' | 'secondary';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
@@ -10,27 +10,29 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, disabled, loading, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+      'inline-flex items-center justify-center gap-2 font-medium transition-[background-color,border-color,color,box-shadow,transform] focus:outline-none focus:ring-0 disabled:pointer-events-none disabled:opacity-50';
+
+    const normalizedVariant = variant === 'primary' ? 'solid' : variant === 'secondary' ? 'soft' : variant;
 
     const variants = {
-      primary:
-        'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 focus:ring-2 focus:ring-purple-500/50',
-      secondary: 'bg-secondary text-white hover:bg-secondary-hover focus:ring-secondary',
+      solid:
+        'bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover active:translate-y-px',
+      soft: 'bg-accent-soft text-accent hover:bg-accent-soft/80 active:translate-y-px',
       outline:
-        'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
-      ghost: 'text-fg-primary hover:bg-bg-secondary focus:ring-primary',
+        'border border-border-soft bg-transparent text-text-primary hover:border-border-strong hover:bg-surface-muted active:translate-y-px',
+      ghost: 'bg-transparent text-text-primary hover:bg-surface-muted active:translate-y-px',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm rounded-md',
-      md: 'px-4 py-2 text-base rounded-md',
-      lg: 'px-6 py-3 text-lg rounded-lg',
+      sm: 'h-button-sm rounded-md px-3 text-sm',
+      md: 'h-button-md rounded-xl px-4 text-sm sm:text-base',
+      lg: 'h-button-lg rounded-xl px-6 text-base sm:text-lg',
     };
 
     return (
       <button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        className={cn(baseStyles, variants[normalizedVariant], sizes[size], className)}
         disabled={disabled ?? loading}
         aria-busy={loading}
         {...props}

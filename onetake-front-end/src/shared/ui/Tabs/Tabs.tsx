@@ -20,7 +20,7 @@ export const Tabs = ({ tabs, defaultTab, className }: TabsProps) => {
 
   return (
     <div className={cn('w-full', className)}>
-      <div className="border-b border-border">
+      <div className="border-b border-border-soft">
         <nav className="flex space-x-4" role="tablist">
           {tabs.map((tab) => (
             <button
@@ -31,8 +31,8 @@ export const Tabs = ({ tabs, defaultTab, className }: TabsProps) => {
               className={cn(
                 'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-fg-secondary hover:text-fg-primary hover:border-border'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-secondary hover:border-border-soft hover:text-text-primary'
               )}
             >
               {tab.label}

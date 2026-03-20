@@ -28,4 +28,5 @@ export type { VideoPlayerProps } from './VideoPlayer';
 export { ErrorMessage } from './ErrorMessage';
 export type { ErrorMessageProps } from './ErrorMessage';
 
+export * from './recipes';
 export * from './icons';

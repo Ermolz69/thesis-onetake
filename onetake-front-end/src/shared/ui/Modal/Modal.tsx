@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { cn } from '@/shared/lib';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -32,19 +32,19 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay" onClick={onClose}>
       <div
-        className={cn('bg-bg-primary rounded-lg shadow-lg w-full mx-4', sizes[size])}
+        className={cn(
+          'mx-4 w-full rounded-2xl border border-border-soft bg-surface-elevated shadow-lg',
+          sizes[size]
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-fg-primary">{title}</h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ×
+          <div className="flex items-center justify-between border-b border-border-soft p-4">
+            <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+            <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
+              x
             </Button>
           </div>
         )}

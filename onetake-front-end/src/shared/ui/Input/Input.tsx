@@ -1,11 +1,19 @@
 import { InputHTMLAttributes, forwardRef, ReactNode } from 'react';
 import { cn } from '@/shared/lib';
 import { inputBase, inputError, labelClass } from '@/shared/ui/auth-styles';
+import {
+  fieldHintError,
+  fieldInput,
+  fieldInputError,
+  fieldInputFilled,
+  fieldInputGhost,
+  fieldLabel,
+} from '@/shared/ui/recipes';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  variant?: 'default' | 'auth';
+  variant?: 'default' | 'filled' | 'ghost' | 'auth';
   trailing?: ReactNode;
 }
 
@@ -35,23 +43,27 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       );
     }
 
+    const variants = {
+      default: fieldInput,
+      filled: fieldInputFilled,
+      ghost: fieldInputGhost,
+    };
+
     return (
       <div className="w-full">
-        {label && <label className="block text-sm font-medium text-fg-primary mb-1">{label}</label>}
+        {label && <label className={`mb-1 block ${fieldLabel}`}>{label}</label>}
         <input
           ref={ref}
           type={type}
           className={cn(
-            'w-full px-4 py-2 border border-border rounded-md',
-            'bg-bg-primary text-fg-primary',
-            'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            error && 'border-error focus:ring-error',
+            variants[variant],
+            'mt-0 disabled:cursor-not-allowed disabled:opacity-50',
+            error && fieldInputError,
             className
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-error">{error}</p>}
+        {error && <p className={fieldHintError}>{error}</p>}
       </div>
     );
   }
