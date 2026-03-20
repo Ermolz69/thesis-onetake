@@ -64,9 +64,7 @@ export const Badge = ({
   ...props
 }: BadgeProps) => {
   const normalized =
-    variant === 'default' || variant === 'primary'
-      ? legacyVariantMap[variant]
-      : { variant, tone };
+    variant === 'default' || variant === 'primary' ? legacyVariantMap[variant] : { variant, tone };
 
   return (
     <span

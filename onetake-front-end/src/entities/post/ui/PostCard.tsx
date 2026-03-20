@@ -29,7 +29,13 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
   };
 
   return (
-    <Card variant="interactive" radius="xl" elevation="raised" className="cursor-pointer p-0" onClick={handleClick}>
+    <Card
+      variant="interactive"
+      radius="xl"
+      elevation="raised"
+      className="cursor-pointer p-0"
+      onClick={handleClick}
+    >
       <div className={mediaFrame}>
         {post.mediaUrl ? (
           post.mediaType === MediaType.Video ? (
@@ -39,7 +45,11 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
               controls={false}
             />
           ) : (
-            <audio src={resolveMediaUrl(post.mediaUrl)} className="h-full w-full" controls={false} />
+            <audio
+              src={resolveMediaUrl(post.mediaUrl)}
+              className="h-full w-full"
+              controls={false}
+            />
           )
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-text-secondary">

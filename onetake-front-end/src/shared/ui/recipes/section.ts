@@ -14,5 +14,4 @@ export const emptyStateTitle = 'text-base font-semibold text-text-primary';
 
 export const emptyStateText = 'mt-2 text-sm text-text-secondary';
 
-export const toolbar =
-  'mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between';
+export const toolbar = 'mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between';

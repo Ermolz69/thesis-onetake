@@ -75,7 +75,9 @@ export const NotificationsPage = () => {
           </div>
           {unreadCount > 0 && (
             <div className="flex items-center gap-3">
-              <Badge variant="soft" tone="accent">{unreadCount} unread</Badge>
+              <Badge variant="soft" tone="accent">
+                {unreadCount} unread
+              </Badge>
               <Button variant="outline" tone="neutral" size="sm" onClick={handleMarkAllRead}>
                 Mark all as read
               </Button>
@@ -88,7 +90,9 @@ export const NotificationsPage = () => {
         ) : items.length === 0 ? (
           <div className={emptyStateWrapper}>
             <p className={emptyStateTitle}>No notifications yet</p>
-            <p className={emptyStateText}>When there is activity around your account, it will appear here.</p>
+            <p className={emptyStateText}>
+              When there is activity around your account, it will appear here.
+            </p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -104,7 +108,11 @@ export const NotificationsPage = () => {
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium text-text-primary">{n.title}</p>
-                        {!n.isRead && <Badge variant="soft" tone="accent" size="sm">New</Badge>}
+                        {!n.isRead && (
+                          <Badge variant="soft" tone="accent" size="sm">
+                            New
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-text-secondary">{n.body}</p>
                       <p className="text-xs text-text-secondary">

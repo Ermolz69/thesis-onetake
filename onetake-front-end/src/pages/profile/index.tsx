@@ -177,7 +177,11 @@ export const ProfilePage = () => {
         <div className={profileHeaderCard}>
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-6">
             {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={profile.username} className={`${profileAvatar} shrink-0`} />
+              <img
+                src={profile.avatarUrl}
+                alt={profile.username}
+                className={`${profileAvatar} shrink-0`}
+              />
             ) : (
               <div className={`${profileAvatar} ${profileFallbackAvatar} shrink-0`}>
                 {(profile.fullName || profile.username).charAt(0).toUpperCase()}

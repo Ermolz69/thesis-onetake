@@ -133,7 +133,11 @@ export const PostDetailsPage = () => {
                   />
                 ) : (
                   <div className="bg-surface-muted p-6">
-                    <audio src={resolveMediaUrl(currentPost.mediaUrl)} className="w-full" controls />
+                    <audio
+                      src={resolveMediaUrl(currentPost.mediaUrl)}
+                      className="w-full"
+                      controls
+                    />
                   </div>
                 )}
               </Card>
@@ -205,7 +209,9 @@ export const PostDetailsPage = () => {
             </Card>
 
             <Card radius="xl" className="space-y-4">
-              <h3 className="text-lg font-semibold text-text-primary">Comments ({comments.length})</h3>
+              <h3 className="text-lg font-semibold text-text-primary">
+                Comments ({comments.length})
+              </h3>
               {currentUser && (
                 <form onSubmit={handleAddComment} className="flex flex-col gap-3 sm:flex-row">
                   <Input

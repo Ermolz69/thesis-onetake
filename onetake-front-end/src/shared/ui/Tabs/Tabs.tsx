@@ -28,11 +28,13 @@ const sizeStyles: Record<TabsSize, string> = {
 const toneStyles: Record<TabsTone, { active: string; inactive: string }> = {
   neutral: {
     active: 'border-text-primary text-text-primary bg-transparent',
-    inactive: 'border-transparent text-text-secondary hover:border-border-soft hover:text-text-primary',
+    inactive:
+      'border-transparent text-text-secondary hover:border-border-soft hover:text-text-primary',
   },
   accent: {
     active: 'border-accent text-accent bg-transparent',
-    inactive: 'border-transparent text-text-secondary hover:border-border-soft hover:text-text-primary',
+    inactive:
+      'border-transparent text-text-secondary hover:border-border-soft hover:text-text-primary',
   },
 };
 
@@ -65,7 +67,10 @@ export const Tabs = ({
                   'font-medium transition-[background-color,border-color,color,box-shadow] focus-visible:outline-none focus-visible:[box-shadow:var(--input-ring)]',
                   sizeStyles[size],
                   variant === 'underline'
-                    ? cn('border-b-2', isActive ? toneStyles[tone].active : toneStyles[tone].inactive)
+                    ? cn(
+                        'border-b-2',
+                        isActive ? toneStyles[tone].active : toneStyles[tone].inactive
+                      )
                     : cn(
                         'rounded-xl border',
                         isActive

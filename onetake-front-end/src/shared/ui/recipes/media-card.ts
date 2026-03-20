@@ -7,5 +7,4 @@ export const mediaCardBody = 'p-4';
 
 export const metaRow = 'mt-1 flex flex-wrap items-center gap-2 text-sm text-text-secondary';
 
-export const actionRow =
-  'flex items-center justify-between gap-3 border-t border-border-soft pt-3';
+export const actionRow = 'flex items-center justify-between gap-3 border-t border-border-soft pt-3';

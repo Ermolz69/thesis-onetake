@@ -89,7 +89,9 @@ export const HomePage = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <Card variant="solid" elevation="raised" radius="xl">
               <h3 className="mb-2 text-xl font-semibold text-text-primary">Audio & Video</h3>
-              <p className="text-text-secondary">Share your creative content in audio or video format.</p>
+              <p className="text-text-secondary">
+                Share your creative content in audio or video format.
+              </p>
             </Card>
             <Card variant="solid" elevation="raised" radius="xl">
               <h3 className="mb-2 text-xl font-semibold text-text-primary">Discover</h3>
@@ -144,7 +146,9 @@ export const HomePage = () => {
                 ) : (
                   <div className={emptyStateWrapper}>
                     <p className={emptyStateTitle}>No following posts yet</p>
-                    <p className={emptyStateText}>Once creators you follow publish, they will appear here.</p>
+                    <p className={emptyStateText}>
+                      Once creators you follow publish, they will appear here.
+                    </p>
                   </div>
                 )}
               </section>

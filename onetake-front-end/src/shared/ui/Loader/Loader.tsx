@@ -16,20 +16,22 @@ const sizeStyles: Record<LoaderSize, string> = {
   lg: 'h-16 w-16',
 };
 
-const toneStyles: Record<LoaderTone, { ring: string; ringAlt: string; core: string; dot: string }> = {
-  accent: {
-    ring: 'border-t-accent border-r-accent border-b-border-strong border-l-border-strong',
-    ringAlt: 'border-t-text-muted border-r-accent border-b-accent border-l-text-muted',
-    core: 'bg-accent-soft',
-    dot: 'bg-accent',
-  },
-  neutral: {
-    ring: 'border-t-text-primary border-r-text-secondary border-b-border-strong border-l-border-strong',
-    ringAlt: 'border-t-text-muted border-r-text-primary border-b-text-secondary border-l-text-muted',
-    core: 'bg-surface-muted',
-    dot: 'bg-text-primary',
-  },
-};
+const toneStyles: Record<LoaderTone, { ring: string; ringAlt: string; core: string; dot: string }> =
+  {
+    accent: {
+      ring: 'border-t-accent border-r-accent border-b-border-strong border-l-border-strong',
+      ringAlt: 'border-t-text-muted border-r-accent border-b-accent border-l-text-muted',
+      core: 'bg-accent-soft',
+      dot: 'bg-accent',
+    },
+    neutral: {
+      ring: 'border-t-text-primary border-r-text-secondary border-b-border-strong border-l-border-strong',
+      ringAlt:
+        'border-t-text-muted border-r-text-primary border-b-text-secondary border-l-text-muted',
+      core: 'bg-surface-muted',
+      dot: 'bg-text-primary',
+    },
+  };
 
 export const Loader = ({
   size = 'md',

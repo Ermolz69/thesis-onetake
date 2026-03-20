@@ -51,7 +51,10 @@ export const Layout = ({ children }: LayoutProps) => {
       <header className="border-b border-border-soft bg-surface-elevated/90 backdrop-blur">
         <div className={`${contentContainer} py-4`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Link to={routes.home} className="text-2xl font-semibold tracking-tight text-text-primary">
+            <Link
+              to={routes.home}
+              className="text-2xl font-semibold tracking-tight text-text-primary"
+            >
               OneTake
             </Link>
             <nav className="flex flex-wrap items-center gap-2">

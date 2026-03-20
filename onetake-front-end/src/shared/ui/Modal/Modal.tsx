@@ -56,7 +56,10 @@ export const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4"
+      onClick={onClose}
+    >
       <div
         className={cn(
           'w-full rounded-2xl border',
@@ -69,7 +72,14 @@ export const Modal = ({
         {title && (
           <div className="flex items-center justify-between border-b border-border-soft p-4">
             <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
-            <Button variant="ghost" tone="neutral" size="sm" radius="pill" onClick={onClose} aria-label="Close modal">
+            <Button
+              variant="ghost"
+              tone="neutral"
+              size="sm"
+              radius="pill"
+              onClick={onClose}
+              aria-label="Close modal"
+            >
               x
             </Button>
           </div>

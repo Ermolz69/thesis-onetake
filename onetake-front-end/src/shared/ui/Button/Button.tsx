@@ -92,9 +92,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const normalized =
-      variant === 'primary' || variant === 'secondary'
-        ? variantMap[variant]
-        : { variant, tone };
+      variant === 'primary' || variant === 'secondary' ? variantMap[variant] : { variant, tone };
 
     return (
       <button

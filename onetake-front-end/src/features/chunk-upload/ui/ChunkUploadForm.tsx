@@ -49,11 +49,17 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Badge variant="soft" tone="success">Ready</Badge>
+          <Badge variant="soft" tone="success">
+            Ready
+          </Badge>
           <p className="font-medium text-text-primary">Post created</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="solid" tone="accent" onClick={() => navigate(routes.postDetails(post.id))}>
+          <Button
+            variant="solid"
+            tone="accent"
+            onClick={() => navigate(routes.postDetails(post.id))}
+          >
             View post
           </Button>
           <Button variant="outline" tone="neutral" onClick={() => navigate(routes.record)}>
@@ -68,7 +74,9 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Badge variant="soft" tone="danger">Issue</Badge>
+          <Badge variant="soft" tone="danger">
+            Issue
+          </Badge>
           <p className="font-medium text-text-primary">Upload failed</p>
         </div>
         {error && <ErrorMessage message={error} />}
