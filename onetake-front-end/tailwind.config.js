@@ -36,25 +36,25 @@ export default {
 
         /* Compatibility aliases for the incremental migration */
         bg: {
-          primary: 'var(--color-bg-primary)',
-          secondary: 'var(--color-bg-secondary)',
-          tertiary: 'var(--color-bg-tertiary)',
+          primary: 'var(--surface-page)',
+          secondary: 'var(--surface-muted)',
+          tertiary: 'var(--surface-elevated)',
         },
         fg: {
-          primary: 'var(--color-fg-primary)',
-          secondary: 'var(--color-fg-secondary)',
-          tertiary: 'var(--color-fg-tertiary)',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-muted)',
         },
         primary: {
-          DEFAULT: 'var(--color-primary)',
-          hover: 'var(--color-primary-hover)',
-          active: 'var(--color-primary-active)',
+          DEFAULT: 'var(--accent)',
+          hover: 'var(--accent-hover)',
+          active: 'var(--accent-active)',
         },
         secondary: {
-          DEFAULT: 'var(--color-secondary)',
-          hover: 'var(--color-secondary-hover)',
+          DEFAULT: 'var(--text-secondary)',
+          hover: 'var(--text-primary)',
         },
-        error: 'var(--color-error)',
+        error: 'var(--danger)',
       },
       borderRadius: {
         sm: 'var(--radius-sm)',

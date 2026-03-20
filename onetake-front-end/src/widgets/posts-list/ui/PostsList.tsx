@@ -3,6 +3,7 @@ import { PostsSearch } from '@/features/posts-search';
 import { PostsFilter, type FilterOptions } from '@/features/posts-filter';
 import { PostCard, usePostStore, postApi } from '@/entities/post';
 import { Loader, Pagination, ErrorMessage } from '@/shared/ui';
+import { emptyStateText, emptyStateTitle, emptyStateWrapper } from '@/shared/ui/recipes';
 
 export const PostsList = () => {
   const { posts, isLoading, error, nextCursor, fetchPosts, likePost, unlikePost } = usePostStore();
@@ -27,18 +28,25 @@ export const PostsList = () => {
   }, [searchQuery, filters, currentPage, nextCursor, fetchPosts]);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults(null);
-      return;
-    }
-    setSearchLoading(true);
-    postApi
-      .searchPosts({ q: searchQuery.trim(), pageSize: 10 })
-      .then((r) =>
-        setSearchResults({ posts: r.posts, nextCursor: r.nextCursor, hasMore: r.hasMore })
-      )
-      .catch(() => setSearchResults({ posts: [], nextCursor: null, hasMore: false }))
-      .finally(() => setSearchLoading(false));
+    if (!searchQuery.trim()) return;
+
+    const searchPosts = async () => {
+      setSearchLoading(true);
+      try {
+        const result = await postApi.searchPosts({ q: searchQuery.trim(), pageSize: 10 });
+        setSearchResults({
+          posts: result.posts,
+          nextCursor: result.nextCursor,
+          hasMore: result.hasMore,
+        });
+      } catch {
+        setSearchResults({ posts: [], nextCursor: null, hasMore: false });
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    void searchPosts();
   }, [searchQuery]);
 
   const handleSearch = (query: string) => {
@@ -90,12 +98,15 @@ export const PostsList = () => {
       {error && <ErrorMessage message={error} />}
 
       {!displayLoading && !error && paginatedPosts.length === 0 && (
-        <div className="text-center py-12 text-fg-secondary">No posts found</div>
+        <div className={emptyStateWrapper}>
+          <p className={emptyStateTitle}>No posts found</p>
+          <p className={emptyStateText}>Try another search or adjust the active filters.</p>
+        </div>
       )}
 
       {!displayLoading && !error && paginatedPosts.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {paginatedPosts.map((post) => (
               <PostCard
                 key={post.id}

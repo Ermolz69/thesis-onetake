@@ -43,10 +43,7 @@ export function useRecording(): UseRecordingReturn {
   const elapsedBeforePauseRef = useRef<number>(0);
 
   useEffect(() => {
-    if (state !== 'recording' && state !== 'paused') {
-      setLiveDurationMs(0);
-      return;
-    }
+    if (state !== 'recording' && state !== 'paused') return;
     const interval = setInterval(() => {
       const elapsed =
         elapsedBeforePauseRef.current +
@@ -72,6 +69,7 @@ export function useRecording(): UseRecordingReturn {
       chunksRef.current = [];
       elapsedBeforePauseRef.current = 0;
       startTimeRef.current = Date.now();
+      setLiveDurationMs(0);
       const videoConstraint = options?.videoDeviceId
         ? ({ deviceId: { exact: options.videoDeviceId } } as const)
         : true;
@@ -140,6 +138,7 @@ export function useRecording(): UseRecordingReturn {
           });
           setRecordedFile(file);
           setDurationMs(totalMs);
+          setLiveDurationMs(totalMs);
         };
         recorder.start(1000);
         setState('recording');
@@ -163,11 +162,8 @@ export function useRecording(): UseRecordingReturn {
 
   const stopRecording = useCallback(() => {
     if (recorderRef.current?.state === 'recording' || recorderRef.current?.state === 'paused') {
-      if (recorderRef.current.state === 'paused') {
-        elapsedBeforePauseRef.current += Date.now() - startTimeRef.current;
-      } else {
-        elapsedBeforePauseRef.current += Date.now() - startTimeRef.current;
-      }
+      elapsedBeforePauseRef.current += Date.now() - startTimeRef.current;
+      setLiveDurationMs(elapsedBeforePauseRef.current);
       recorderRef.current.stop();
       recorderRef.current = null;
       setState('stopped');
@@ -177,6 +173,7 @@ export function useRecording(): UseRecordingReturn {
   const pauseRecording = useCallback(() => {
     if (recorderRef.current?.state === 'recording') {
       elapsedBeforePauseRef.current += Date.now() - startTimeRef.current;
+      setLiveDurationMs(elapsedBeforePauseRef.current);
       recorderRef.current.pause();
       setState('paused');
     }
@@ -202,6 +199,7 @@ export function useRecording(): UseRecordingReturn {
     setState('idle');
     setError(null);
     setDurationMs(0);
+    setLiveDurationMs(0);
     chunksRef.current = [];
   }, [stopStream]);
 

@@ -27,23 +27,24 @@ export const PostsFilter = ({ onFilterChange, availableTags = [] }: PostsFilterP
   };
 
   return (
-    <Card>
+    <Card variant="muted" elevation="flat" radius="xl">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-fg-primary">Filters</h3>
-          <Button variant="ghost" size="sm" onClick={handleClear}>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-text-primary">Filters</h3>
+          <Button variant="ghost" tone="neutral" size="sm" onClick={handleClear}>
             Clear all
           </Button>
         </div>
 
         {availableTags.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-fg-primary mb-2">Tags</label>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-text-secondary">Tags</p>
             <div className="flex flex-wrap gap-2">
               {availableTags.map((tag) => (
                 <Button
                   key={tag}
-                  variant={selectedTag === tag ? 'primary' : 'outline'}
+                  variant={selectedTag === tag ? 'soft' : 'outline'}
+                  tone={selectedTag === tag ? 'accent' : 'neutral'}
                   size="sm"
                   onClick={() => handleTagChange(selectedTag === tag ? undefined : tag)}
                 >

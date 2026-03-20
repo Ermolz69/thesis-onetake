@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/shared/ui';
-import { previewBlockClass } from '@/shared/ui/record-styles';
+import { mediaFrame } from '@/shared/ui/recipes';
 import type { RecordingState } from '@/features/recording-studio/types';
 
 export interface RecordingPreviewProps {
@@ -17,7 +17,10 @@ export const RecordingPreview = ({
   onRetake,
 }: RecordingPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const objectUrl = useMemo(
+    () => (recordedBlob && state === 'stopped' ? URL.createObjectURL(recordedBlob) : null),
+    [recordedBlob, state]
+  );
 
   useEffect(() => {
     const video = videoRef.current;
@@ -32,13 +35,10 @@ export const RecordingPreview = ({
   }, [stream]);
 
   useEffect(() => {
-    if (recordedBlob && state === 'stopped') {
-      const url = URL.createObjectURL(recordedBlob);
-      setObjectUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-    setObjectUrl(null);
-  }, [recordedBlob, state]);
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [objectUrl]);
 
   const showLive = (state === 'recording' || state === 'paused') && stream;
   const showRecorded = state === 'stopped' && objectUrl;
@@ -46,7 +46,9 @@ export const RecordingPreview = ({
 
   return (
     <div className="space-y-2">
-      <div className={`relative w-full ${previewBlockClass}`}>
+      <div
+        className={`relative w-full ${mediaFrame} flex items-center justify-center rounded-2xl border border-border-soft`}
+      >
         <video
           ref={videoRef}
           autoPlay
@@ -62,7 +64,7 @@ export const RecordingPreview = ({
           aria-hidden={!showRecorded}
         />
         {showPlaceholder && (
-          <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+          <div className="absolute inset-0 flex items-center justify-center text-text-muted">
             Preview will appear here
           </div>
         )}

@@ -20,22 +20,25 @@ export const PostsSearch = ({ onSearch, placeholder = 'Search posts...' }: Posts
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
       <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
+        variant="filled"
         className="flex-1"
       />
-      <Button type="submit" variant="primary">
-        Search
-      </Button>
-      {query && (
-        <Button type="button" variant="ghost" onClick={handleClear}>
-          Clear
+      <div className="flex gap-2">
+        <Button type="submit" variant="solid" tone="accent">
+          Search
         </Button>
-      )}
+        {query && (
+          <Button type="button" variant="ghost" tone="neutral" onClick={handleClear}>
+            Clear
+          </Button>
+        )}
+      </div>
     </form>
   );
 };

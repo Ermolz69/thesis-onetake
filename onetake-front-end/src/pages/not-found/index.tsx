@@ -1,19 +1,13 @@
 import { Link } from 'react-router-dom';
 import { routes } from '@/shared/config';
-import {
-  pageWrapper,
-  cardClass,
-  titleClass,
-  subtitleClass,
-  btnPrimary,
-} from '@/shared/ui/auth-styles';
+import { authCard, authPageShell, authSubtitle, authTitle } from '@/pages/auth/styles';
 
 export const NotFoundPage = () => {
   return (
-    <div className={pageWrapper}>
-      <div className={cardClass + ' text-center'}>
+    <div className={authPageShell}>
+      <div className={`${authCard} text-center`}>
         <svg
-          className="mx-auto w-32 h-32 text-slate-300 mb-6"
+          className="mx-auto mb-6 h-32 w-32 text-text-muted"
           viewBox="0 0 120 120"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -52,11 +46,14 @@ export const NotFoundPage = () => {
             style={{ animationDelay: '0.6s' }}
           />
         </svg>
-        <h1 className={titleClass}>404</h1>
-        <p className={subtitleClass + ' mb-6'}>
-          This page wandered off. Maybe it’s recording somewhere else.
+        <h1 className={authTitle}>404</h1>
+        <p className={`${authSubtitle} mb-6`}>
+          This page wandered off. Maybe it&apos;s recording somewhere else.
         </p>
-        <Link to={routes.home} className={btnPrimary + ' inline-flex items-center justify-center'}>
+        <Link
+          to={routes.home}
+          className="inline-flex h-button-md items-center justify-center rounded-xl bg-accent px-5 font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
+        >
           Go home
         </Link>
       </div>

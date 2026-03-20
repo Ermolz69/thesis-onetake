@@ -1,6 +1,5 @@
-import { InputHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { InputHTMLAttributes, ReactNode, forwardRef } from 'react';
 import { cn } from '@/shared/lib';
-import { inputBase, inputError, labelClass } from '@/shared/ui/auth-styles';
 import {
   fieldHintError,
   fieldInput,
@@ -10,60 +9,81 @@ import {
   fieldLabel,
 } from '@/shared/ui/recipes';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+type InputVariant = 'outline' | 'filled' | 'ghost' | 'default';
+type InputSize = 'sm' | 'md' | 'lg';
+type InputRadius = 'md' | 'lg';
+
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   error?: string;
-  variant?: 'default' | 'filled' | 'ghost' | 'auth';
+  hint?: string;
+  variant?: InputVariant;
+  size?: InputSize;
+  radius?: InputRadius;
   trailing?: ReactNode;
 }
 
+const variantStyles: Record<InputVariant, string> = {
+  default: fieldInput,
+  outline: fieldInput,
+  filled: fieldInputFilled,
+  ghost: fieldInputGhost,
+};
+
+const sizeStyles: Record<InputSize, string> = {
+  sm: 'h-10 px-3 text-sm',
+  md: 'h-input-md px-4 text-sm sm:text-base',
+  lg: 'h-12 px-4 text-base',
+};
+
+const radiusStyles: Record<InputRadius, string> = {
+  md: 'rounded-md',
+  lg: 'rounded-xl',
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, type = 'text', variant = 'default', trailing, ...props }, ref) => {
-    if (variant === 'auth') {
-      return (
-        <div className="w-full">
-          {label && <label className={`block ${labelClass}`}>{label}</label>}
-          <div className="relative">
-            <input
-              ref={ref}
-              type={type}
-              className={cn(inputBase, error && inputError, trailing && 'pr-12', className)}
-              aria-invalid={!!error}
-              aria-describedby={error ? undefined : undefined}
-              {...props}
-            />
-            {trailing && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                {trailing}
-              </div>
-            )}
-          </div>
-          {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-        </div>
-      );
-    }
-
-    const variants = {
-      default: fieldInput,
-      filled: fieldInputFilled,
-      ghost: fieldInputGhost,
-    };
-
+  (
+    {
+      className,
+      label,
+      error,
+      hint,
+      type = 'text',
+      variant = 'outline',
+      size = 'md',
+      radius = 'lg',
+      trailing,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className="w-full">
         {label && <label className={`mb-1 block ${fieldLabel}`}>{label}</label>}
-        <input
-          ref={ref}
-          type={type}
-          className={cn(
-            variants[variant],
-            'mt-0 disabled:cursor-not-allowed disabled:opacity-50',
-            error && fieldInputError,
-            className
+        <div className="relative">
+          <input
+            ref={ref}
+            type={type}
+            className={cn(
+              variantStyles[variant],
+              'mt-0 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:[box-shadow:var(--input-ring)]',
+              sizeStyles[size],
+              radiusStyles[radius],
+              trailing && 'pr-12',
+              error && fieldInputError,
+              className
+            )}
+            aria-invalid={!!error}
+            {...props}
+          />
+          {trailing && (
+            <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center">
+              {trailing}
+            </div>
           )}
-          {...props}
-        />
+        </div>
         {error && <p className={fieldHintError}>{error}</p>}
+        {!error && hint && <p className="mt-1.5 text-xs text-text-secondary">{hint}</p>}
       </div>
     );
   }

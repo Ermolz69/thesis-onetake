@@ -1,12 +1,13 @@
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { routes } from '@/shared/config';
-import { Button, MoonIcon, SunIcon, BellIcon } from '@/shared/ui';
+import { Button, MoonIcon, SunIcon, BellIcon, Badge } from '@/shared/ui';
 import { useTheme } from '@/app/providers/theme';
 import { notificationApi } from '@/entities/notification';
 import { AuthContext } from '@/app/providers/auth';
 import { api } from '@/shared/config';
 import { http } from '@/shared/api';
+import { contentContainer } from '@/shared/ui/recipes';
 
 export interface LayoutProps {
   children: ReactNode;
@@ -46,38 +47,36 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-border bg-bg-primary">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to={routes.home} className="text-2xl font-bold text-fg-primary">
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-border-soft bg-surface-elevated/90 backdrop-blur">
+        <div className={`${contentContainer} py-4`}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Link to={routes.home} className="text-2xl font-semibold tracking-tight text-text-primary">
               OneTake
             </Link>
-            <nav className="flex items-center gap-3">
+            <nav className="flex flex-wrap items-center gap-2">
               <Link to={routes.posts}>
-                <Button variant="ghost" className="relative overflow-hidden group">
-                  <span className="relative z-10 transition-transform duration-300 group-hover:scale-105">
-                    Posts
-                  </span>
-                  <span className="absolute inset-0 bg-primary/10 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <Button variant="ghost" tone="neutral" size="sm">
+                  Posts
                 </Button>
               </Link>
               {hasAuth && (
                 <Link to={routes.record}>
-                  <Button variant="ghost" className="relative overflow-hidden group">
-                    <span className="relative z-10 transition-transform duration-300 group-hover:scale-105">
-                      Create post
-                    </span>
-                    <span className="absolute inset-0 bg-primary/10 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                  <Button variant="ghost" tone="neutral" size="sm">
+                    Create post
                   </Button>
                 </Link>
               )}
               {hasAuth && (
-                <Link to={routes.notifications} className="relative p-2">
-                  <BellIcon className="w-5 h-5 text-fg-primary" />
+                <Link to={routes.notifications} className="relative">
+                  <Button variant="ghost" tone="neutral" size="sm" radius="pill">
+                    <BellIcon className="h-5 w-5" />
+                  </Button>
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
-                      {unreadCount > 99 ? '99+' : unreadCount}
+                    <span className="absolute -right-1 -top-1">
+                      <Badge variant="solid" tone="accent" size="sm">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
                     </span>
                   )}
                 </Link>
@@ -86,48 +85,28 @@ export const Layout = ({ children }: LayoutProps) => {
                 <>
                   {user?.id && (
                     <Link to={routes.profile(user.id)}>
-                      <Button variant="ghost" className="relative overflow-hidden group">
-                        <span className="relative z-10">{user.username ?? 'Profile'}</span>
-                        <span className="absolute inset-0 bg-primary/10 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                      <Button variant="ghost" tone="neutral" size="sm">
+                        {user.username ?? 'Profile'}
                       </Button>
                     </Link>
                   )}
-                  <Button
-                    variant="outline"
-                    onClick={handleSignOut}
-                    className="relative overflow-hidden group border-2 border-primary/50 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
-                  >
-                    <span className="relative z-10 font-semibold transition-all duration-300 group-hover:scale-105">
-                      Sign out
-                    </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                  <Button variant="outline" tone="neutral" size="sm" onClick={handleSignOut}>
+                    Sign out
                   </Button>
                 </>
               ) : (
                 <Link to={routes.auth.login}>
-                  <Button
-                    variant="outline"
-                    className="relative overflow-hidden group border-2 border-primary/50 hover:border-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
-                  >
-                    <span className="relative z-10 font-semibold transition-all duration-300 group-hover:scale-105">
-                      Sign In
-                    </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                  <Button variant="outline" tone="neutral" size="sm">
+                    Sign in
                   </Button>
                 </Link>
               )}
-              <Button
-                variant="ghost"
-                onClick={toggleTheme}
-                className="p-2 relative overflow-hidden group rounded-full hover:bg-bg-secondary transition-all duration-300"
-              >
-                <span className="relative z-10 transform transition-transform duration-500 group-hover:rotate-180">
-                  {theme === 'light' ? (
-                    <MoonIcon className="w-5 h-5" color="currentColor" />
-                  ) : (
-                    <SunIcon className="w-5 h-5" color="currentColor" />
-                  )}
-                </span>
+              <Button variant="ghost" tone="neutral" size="sm" radius="pill" onClick={toggleTheme}>
+                {theme === 'light' ? (
+                  <MoonIcon className="h-5 w-5" color="currentColor" />
+                ) : (
+                  <SunIcon className="h-5 w-5" color="currentColor" />
+                )}
               </Button>
             </nav>
           </div>

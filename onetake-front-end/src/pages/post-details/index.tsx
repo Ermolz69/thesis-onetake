@@ -17,6 +17,13 @@ import {
 import { MediaType } from '@/entities/post';
 import { routes, resolveMediaUrl } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
+import {
+  contentContainer,
+  contentShell,
+  emptyStateText,
+  emptyStateTitle,
+  emptyStateWrapper,
+} from '@/shared/ui/recipes';
 
 export const PostDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,154 +90,181 @@ export const PostDetailsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center">
-        <Loader size="lg" />
+      <div className={contentShell}>
+        <div className={`${contentContainer} flex justify-center py-12`}>
+          <Loader size="lg" />
+        </div>
       </div>
     );
   }
 
   if (error || !currentPost) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="text-center py-12">
-          <ErrorMessage message={error || 'Post not found'} className="mb-4" />
-          <Button onClick={() => navigate(routes.posts)}>Back to Posts</Button>
-        </Card>
+      <div className={contentShell}>
+        <div className={`${contentContainer} py-8`}>
+          <Card className="py-12 text-center" radius="xl">
+            <ErrorMessage message={error || 'Post not found'} className="mb-4" />
+            <Button onClick={() => navigate(routes.posts)}>Back to Posts</Button>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Button variant="ghost" onClick={() => navigate(routes.posts)} className="mb-6">
-        ← Back to Posts
-      </Button>
+    <div className={contentShell}>
+      <div className={`${contentContainer} space-y-6 py-8`}>
+        <Button variant="ghost" tone="neutral" onClick={() => navigate(routes.posts)}>
+          Back to Posts
+        </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          {currentPost.mediaUrl && (
-            <Card className="overflow-hidden p-0">
-              {currentPost.mediaType === MediaType.Video ? (
-                <VideoPlayer
-                  src={resolveMediaUrl(currentPost.mediaUrl)}
-                  className="w-full min-h-[200px]"
-                  controls
-                  onPlay={watchTrack.onPlay}
-                  onTimeUpdate={watchTrack.onTimeUpdate}
-                  onEnded={watchTrack.onEnded}
-                />
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <div>
+            {currentPost.mediaUrl && (
+              <Card className="overflow-hidden p-0" radius="xl">
+                {currentPost.mediaType === MediaType.Video ? (
+                  <VideoPlayer
+                    src={resolveMediaUrl(currentPost.mediaUrl)}
+                    className="w-full min-h-[220px]"
+                    controls
+                    onPlay={watchTrack.onPlay}
+                    onTimeUpdate={watchTrack.onTimeUpdate}
+                    onEnded={watchTrack.onEnded}
+                  />
+                ) : (
+                  <div className="bg-surface-muted p-6">
+                    <audio src={resolveMediaUrl(currentPost.mediaUrl)} className="w-full" controls />
+                  </div>
+                )}
+              </Card>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <Card radius="xl" className="space-y-5">
+              <div>
+                <h1 className="mb-2 text-3xl font-semibold tracking-tight text-text-primary">
+                  {currentPost.contentText || 'Untitled'}
+                </h1>
+                <p className="text-text-secondary">
+                  by{' '}
+                  <button
+                    type="button"
+                    className="font-medium text-text-primary transition hover:text-accent"
+                    onClick={() => navigate(routes.profile(currentPost.authorId))}
+                  >
+                    {currentPost.authorName}
+                  </button>
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge
+                  variant="soft"
+                  tone={currentPost.mediaType === MediaType.Video ? 'accent' : 'neutral'}
+                >
+                  {currentPost.mediaType === MediaType.Video ? 'Video' : 'Audio'}
+                </Badge>
+                <span className="text-sm text-text-secondary">
+                  {new Date(currentPost.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+
+              {currentPost.tags.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-text-secondary">Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {currentPost.tags.map((tag) => (
+                      <Badge key={tag} variant="soft" tone="neutral" size="sm">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-6 border-t border-border-soft pt-4">
+                <div className="flex items-center gap-2 text-text-secondary">
+                  <span className={isLiked ? 'text-danger' : 'text-text-secondary'}>
+                    <HeartIcon className="h-5 w-5" color="currentColor" filled={isLiked} />
+                  </span>
+                  <span className="font-medium text-text-primary">{currentPost.likeCount}</span>
+                </div>
+                <div className="flex items-center gap-2 text-text-secondary">
+                  <CommentIcon className="h-5 w-5" color="currentColor" />
+                  <span className="font-medium text-text-primary">{currentPost.commentCount}</span>
+                </div>
+                <Button
+                  variant={isLiked ? 'soft' : 'outline'}
+                  tone={isLiked ? 'danger' : 'neutral'}
+                  onClick={handleLike}
+                >
+                  {isLiked ? 'Unlike' : 'Like'}
+                </Button>
+              </div>
+            </Card>
+
+            <Card radius="xl" className="space-y-4">
+              <h3 className="text-lg font-semibold text-text-primary">Comments ({comments.length})</h3>
+              {currentUser && (
+                <form onSubmit={handleAddComment} className="flex flex-col gap-3 sm:flex-row">
+                  <Input
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Write a comment..."
+                    variant="filled"
+                    className="flex-1"
+                    disabled={commentSubmitting}
+                  />
+                  <Button type="submit" disabled={commentSubmitting || !commentText.trim()}>
+                    {commentSubmitting ? '...' : 'Post'}
+                  </Button>
+                </form>
+              )}
+
+              {commentsLoading ? (
+                <Loader size="sm" />
+              ) : comments.length === 0 ? (
+                <div className={emptyStateWrapper}>
+                  <p className={emptyStateTitle}>No comments yet</p>
+                  <p className={emptyStateText}>Start the conversation on this post.</p>
+                </div>
               ) : (
-                <audio src={resolveMediaUrl(currentPost.mediaUrl)} className="w-full" controls />
+                <ul className="space-y-3">
+                  {comments.map((c) => (
+                    <li key={c.id}>
+                      <Card
+                        variant="muted"
+                        elevation="flat"
+                        radius="lg"
+                        className="flex items-start justify-between gap-3"
+                      >
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-text-primary">{c.username}</span>
+                            <span className="text-sm text-text-secondary">
+                              {new Date(c.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-text-primary">{c.text}</p>
+                        </div>
+                        {currentUser && c.userId === currentUser.id && (
+                          <Button
+                            variant="ghost"
+                            tone="danger"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => handleDeleteComment(c.id)}
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </Card>
+                    </li>
+                  ))}
+                </ul>
               )}
             </Card>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-fg-primary mb-2">
-              {currentPost.contentText || 'Untitled'}
-            </h1>
-            <p className="text-fg-secondary">
-              by{' '}
-              <button
-                type="button"
-                className="font-medium text-fg-primary hover:underline"
-                onClick={() => navigate(routes.profile(currentPost.authorId))}
-              >
-                {currentPost.authorName}
-              </button>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Badge variant={currentPost.mediaType === MediaType.Video ? 'primary' : 'default'}>
-              {currentPost.mediaType === MediaType.Video ? 'Video' : 'Audio'}
-            </Badge>
-            <span className="text-fg-secondary">
-              {new Date(currentPost.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-
-          {currentPost.tags.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-fg-secondary mb-2">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {currentPost.tags.map((tag) => (
-                  <Badge key={tag} variant="default">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center gap-6 pt-4 border-t border-border">
-            <div className="flex items-center gap-2">
-              <HeartIcon
-                className="w-5 h-5"
-                color={isLiked ? '#ef4444' : 'currentColor'}
-                filled={isLiked}
-              />
-              <span className="font-medium">{currentPost.likeCount}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CommentIcon className="w-5 h-5 text-fg-secondary" color="currentColor" />
-              <span className="font-medium">{currentPost.commentCount}</span>
-            </div>
-            <Button variant={isLiked ? 'primary' : 'outline'} onClick={handleLike}>
-              {isLiked ? 'Unlike' : 'Like'}
-            </Button>
-          </div>
-
-          <div className="border-t border-border pt-6">
-            <h3 className="text-lg font-semibold text-fg-primary mb-4">
-              Comments ({comments.length})
-            </h3>
-            {currentUser && (
-              <form onSubmit={handleAddComment} className="mb-4 flex gap-2">
-                <Input
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="flex-1"
-                  disabled={commentSubmitting}
-                />
-                <Button type="submit" disabled={commentSubmitting || !commentText.trim()}>
-                  {commentSubmitting ? '...' : 'Post'}
-                </Button>
-              </form>
-            )}
-            {commentsLoading ? (
-              <Loader size="sm" />
-            ) : (
-              <ul className="space-y-3">
-                {comments.map((c) => (
-                  <li
-                    key={c.id}
-                    className="flex items-start justify-between gap-2 rounded-lg bg-bg-secondary/50 p-3"
-                  >
-                    <div>
-                      <span className="font-medium text-fg-primary">{c.username}</span>
-                      <span className="text-fg-secondary text-sm ml-2">
-                        {new Date(c.createdAt).toLocaleString()}
-                      </span>
-                      <p className="text-fg-primary mt-1">{c.text}</p>
-                    </div>
-                    {currentUser && c.userId === currentUser.id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-error shrink-0"
-                        onClick={() => handleDeleteComment(c.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
       </div>

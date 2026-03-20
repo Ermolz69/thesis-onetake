@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button, ErrorMessage } from '@/shared/ui';
+import { Button, ErrorMessage, Card } from '@/shared/ui';
 import { useDevices } from '@/features/recording-studio/useDevices';
 import type { RecordingMode } from '@/features/recording-studio';
 
@@ -27,6 +27,9 @@ function formatMs(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+const selectClass =
+  'w-full rounded-xl border border-border-soft bg-surface-elevated px-3 py-2 text-text-primary focus:outline-none focus-visible:[box-shadow:var(--input-ring)]';
+
 export const RecordControlsPage = () => {
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
@@ -38,11 +41,8 @@ export const RecordControlsPage = () => {
   const [remoteState, setRemoteState] = useState<string>('idle');
   const [liveDurationMs, setLiveDurationMs] = useState(0);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (videoDevices.length && !videoDeviceId) setVideoDeviceId(videoDevices[0].deviceId);
-    if (audioDevices.length && !audioDeviceId) setAudioDeviceId(audioDevices[0].deviceId);
-  }, [videoDevices, audioDevices, videoDeviceId, audioDeviceId]);
+  const selectedVideoDeviceId = videoDeviceId || videoDevices[0]?.deviceId || '';
+  const selectedAudioDeviceId = audioDeviceId || audioDevices[0]?.deviceId || '';
 
   useEffect(() => {
     const handler = (event: MessageEvent<RecordControlsMessageFromMain>) => {
@@ -85,8 +85,8 @@ export const RecordControlsPage = () => {
         countdownRef.current = null;
         send({
           type: 'start',
-          videoDeviceId: videoDeviceId || undefined,
-          audioDeviceId: audioDeviceId || undefined,
+          videoDeviceId: selectedVideoDeviceId || undefined,
+          audioDeviceId: selectedAudioDeviceId || undefined,
         });
       }
     }, 1000);
@@ -101,73 +101,82 @@ export const RecordControlsPage = () => {
   const isRecording = remoteState === 'recording' || remoteState === 'paused';
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 text-slate-900">
-      <h2 className="text-lg font-semibold mb-4">Recording panel</h2>
+    <div className="min-h-screen bg-surface-muted p-4 text-text-primary">
+      <div className="mx-auto max-w-sm">
+        <Card radius="xl" className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-text-primary">Recording panel</h2>
+            <p className="text-sm text-text-secondary">Control the active recording session.</p>
+          </div>
 
-      {devicesError && <ErrorMessage message={devicesError} className="mb-2" />}
+          {devicesError && <ErrorMessage message={devicesError} className="mb-2" />}
 
-      {mode !== 'screen' && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Camera</label>
-          <select
-            value={videoDeviceId}
-            onChange={(e) => setVideoDeviceId(e.target.value)}
-            disabled={!isIdle || loading}
-            className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm"
-          >
-            {videoDevices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="mb-3">
-        <label className="block text-xs font-medium text-slate-600 mb-1">Microphone</label>
-        <select
-          value={audioDeviceId}
-          onChange={(e) => setAudioDeviceId(e.target.value)}
-          disabled={!isIdle || loading}
-          className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm"
-        >
-          {audioDevices.map((d) => (
-            <option key={d.deviceId} value={d.deviceId}>
-              {d.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {isCountdown && (
-          <p className="text-center text-2xl font-bold text-slate-700">{countdown}</p>
-        )}
-        {isIdle && !isCountdown && (
-          <Button variant="primary" onClick={handleStart} disabled={loading}>
-            Start (3…2…1)
-          </Button>
-        )}
-        {isRecording && (
-          <>
-            <p className="text-sm font-medium">{formatMs(liveDurationMs)}</p>
-            <div className="flex gap-2">
-              {remoteState === 'paused' ? (
-                <Button variant="primary" size="md" onClick={handleResume}>
-                  Resume
-                </Button>
-              ) : (
-                <Button variant="outline" size="md" onClick={handlePause}>
-                  Pause
-                </Button>
-              )}
-              <Button variant="primary" size="md" onClick={handleStop}>
-                Stop
-              </Button>
+          {mode !== 'screen' && (
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-text-secondary">Camera</label>
+              <select
+                value={selectedVideoDeviceId}
+                onChange={(e) => setVideoDeviceId(e.target.value)}
+                disabled={!isIdle || loading}
+                className={selectClass}
+              >
+                {videoDevices.map((d) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          </>
-        )}
+          )}
+
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-text-secondary">Microphone</label>
+            <select
+              value={selectedAudioDeviceId}
+              onChange={(e) => setAudioDeviceId(e.target.value)}
+              disabled={!isIdle || loading}
+              className={selectClass}
+            >
+              {audioDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {isCountdown && (
+              <p className="text-center text-3xl font-semibold text-text-primary">{countdown}</p>
+            )}
+            {isIdle && !isCountdown && (
+              <Button variant="solid" tone="accent" onClick={handleStart} disabled={loading}>
+                Start (3...2...1)
+              </Button>
+            )}
+            {isRecording && (
+              <>
+                <div className="rounded-xl bg-surface-muted px-3 py-2 text-sm font-medium text-text-primary">
+                  {formatMs(liveDurationMs)}
+                </div>
+                <div className="flex gap-2">
+                  {remoteState === 'paused' ? (
+                    <Button variant="solid" tone="accent" size="md" onClick={handleResume}>
+                      Resume
+                    </Button>
+                  ) : (
+                    <Button variant="outline" tone="neutral" size="md" onClick={handlePause}>
+                      Pause
+                    </Button>
+                  )}
+                  <Button variant="solid" tone="danger" size="md" onClick={handleStop}>
+                    Stop
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

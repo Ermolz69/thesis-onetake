@@ -1,12 +1,18 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { routes } from '@/shared/config';
-import { Button, Card } from '@/shared/ui';
+import { Button, Card, Loader } from '@/shared/ui';
 import { AuthContext } from '@/app/providers/auth';
 import { RecommendedFeed } from '@/widgets/recommended-feed';
 import { postApi, PostCard } from '@/entities/post';
 import { trackEvent } from '@/features/analytics-track';
-import { Loader } from '@/shared/ui';
+import {
+  contentContainer,
+  contentShell,
+  emptyStateText,
+  emptyStateTitle,
+  emptyStateWrapper,
+} from '@/shared/ui/recipes';
 
 type FeedTab = 'recommended' | 'following';
 
@@ -20,111 +26,132 @@ export const HomePage = () => {
   const currentUser = auth?.user ?? null;
 
   useEffect(() => {
-    if (feedTab === 'following' && currentUser?.id) {
+    if (feedTab !== 'following' || !currentUser?.id) return;
+
+    const loadFollowingFeed = async () => {
       setFollowingLoading(true);
       trackEvent({
         eventName: 'feed_view',
         propsJson: JSON.stringify({ feed_type: 'following' }),
       }).catch(() => {});
-      postApi
-        .getFollowingFeed({ pageSize: 20 })
-        .then(setFollowingPosts)
-        .catch(() => setFollowingPosts({ posts: [], nextCursor: null, hasMore: false }))
-        .finally(() => setFollowingLoading(false));
-    }
+      try {
+        const response = await postApi.getFollowingFeed({ pageSize: 20 });
+        setFollowingPosts(response);
+      } catch {
+        setFollowingPosts({ posts: [], nextCursor: null, hasMore: false });
+      } finally {
+        setFollowingLoading(false);
+      }
+    };
+
+    void loadFollowingFeed();
   }, [feedTab, currentUser?.id]);
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="text-center space-y-8">
-        <h1 className="text-5xl font-bold text-fg-primary">OneTake</h1>
-        <p className="text-xl text-fg-secondary max-w-2xl mx-auto">
-          Share your audio and video content with the world
-        </p>
-
-        <div className="flex justify-center gap-4">
-          <Link to={routes.posts}>
-            <Button variant="primary" size="lg">
-              Browse Posts
-            </Button>
-          </Link>
-          <Link to={routes.record}>
-            <Button variant="outline" size="lg">
-              Record
-            </Button>
-          </Link>
-          {currentUser?.id ? (
-            <Link to={routes.profile(currentUser.id)}>
-              <Button variant="outline" size="lg">
-                Profile
-              </Button>
-            </Link>
-          ) : (
-            <Link to={routes.auth.login}>
-              <Button variant="outline" size="lg">
-                Sign In
-              </Button>
-            </Link>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-          <Card>
-            <h3 className="text-xl font-semibold text-fg-primary mb-2">Audio & Video</h3>
-            <p className="text-fg-secondary">
-              Share your creative content in audio or video format
+    <div className={contentShell}>
+      <div className={`${contentContainer} space-y-10 py-10 sm:py-14`}>
+        <section className="space-y-8 text-center">
+          <div className="space-y-4">
+            <h1 className="text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+              OneTake
+            </h1>
+            <p className="mx-auto max-w-2xl text-lg text-text-secondary sm:text-xl">
+              Share your audio and video content with the world.
             </p>
-          </Card>
-          <Card>
-            <h3 className="text-xl font-semibold text-fg-primary mb-2">Discover</h3>
-            <p className="text-fg-secondary">Explore content from creators around the world</p>
-          </Card>
-          <Card>
-            <h3 className="text-xl font-semibold text-fg-primary mb-2">Connect</h3>
-            <p className="text-fg-secondary">Like, comment, and engage with the community</p>
-          </Card>
-        </div>
-      </div>
+          </div>
 
-      {currentUser && (
-        <div className="flex gap-2 mt-8 mb-4">
-          <Button
-            variant={feedTab === 'recommended' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setFeedTab('recommended')}
-          >
-            Recommended
-          </Button>
-          <Button
-            variant={feedTab === 'following' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setFeedTab('following')}
-          >
-            Following
-          </Button>
-        </div>
-      )}
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link to={routes.posts}>
+              <Button variant="solid" tone="accent" size="lg">
+                Browse Posts
+              </Button>
+            </Link>
+            <Link to={routes.record}>
+              <Button variant="outline" tone="neutral" size="lg">
+                Record
+              </Button>
+            </Link>
+            {currentUser?.id ? (
+              <Link to={routes.profile(currentUser.id)}>
+                <Button variant="outline" tone="neutral" size="lg">
+                  Profile
+                </Button>
+              </Link>
+            ) : (
+              <Link to={routes.auth.login}>
+                <Button variant="outline" tone="neutral" size="lg">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+          </div>
 
-      {feedTab === 'recommended' && <RecommendedFeed limit={10} />}
-
-      {feedTab === 'following' && (
-        <section className="py-8">
-          <h2 className="text-2xl font-semibold text-fg-primary mb-4">Following</h2>
-          {!currentUser ? (
-            <p className="text-fg-secondary">Sign in to see posts from people you follow.</p>
-          ) : followingLoading ? (
-            <Loader size="lg" />
-          ) : followingPosts && followingPosts.posts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {followingPosts.posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-fg-secondary">No posts from people you follow yet.</p>
-          )}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Card variant="solid" elevation="raised" radius="xl">
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">Audio & Video</h3>
+              <p className="text-text-secondary">Share your creative content in audio or video format.</p>
+            </Card>
+            <Card variant="solid" elevation="raised" radius="xl">
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">Discover</h3>
+              <p className="text-text-secondary">Explore content from creators around the world.</p>
+            </Card>
+            <Card variant="solid" elevation="raised" radius="xl">
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">Connect</h3>
+              <p className="text-text-secondary">Like, comment, and engage with the community.</p>
+            </Card>
+          </div>
         </section>
-      )}
+
+        {currentUser && (
+          <section className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={feedTab === 'recommended' ? 'soft' : 'outline'}
+                tone={feedTab === 'recommended' ? 'accent' : 'neutral'}
+                size="sm"
+                onClick={() => setFeedTab('recommended')}
+              >
+                Recommended
+              </Button>
+              <Button
+                variant={feedTab === 'following' ? 'soft' : 'outline'}
+                tone={feedTab === 'following' ? 'accent' : 'neutral'}
+                size="sm"
+                onClick={() => setFeedTab('following')}
+              >
+                Following
+              </Button>
+            </div>
+
+            {feedTab === 'recommended' && <RecommendedFeed limit={10} />}
+
+            {feedTab === 'following' && (
+              <section className="space-y-4 py-2">
+                <h2 className="text-2xl font-semibold text-text-primary">Following</h2>
+                {!currentUser ? (
+                  <div className={emptyStateWrapper}>
+                    <p className={emptyStateTitle}>Sign in required</p>
+                    <p className={emptyStateText}>Sign in to see posts from people you follow.</p>
+                  </div>
+                ) : followingLoading ? (
+                  <Loader size="lg" />
+                ) : followingPosts && followingPosts.posts.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                    {followingPosts.posts.map((post) => (
+                      <PostCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={emptyStateWrapper}>
+                    <p className={emptyStateTitle}>No following posts yet</p>
+                    <p className={emptyStateText}>Once creators you follow publish, they will appear here.</p>
+                  </div>
+                )}
+              </section>
+            )}
+          </section>
+        )}
+      </div>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { userApi, type Profile, type UpdateProfileRequest } from '@/entities/use
 import { Button, Card, Input, Loader } from '@/shared/ui';
 import { routes } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
+import { contentContainer, contentShell } from '@/shared/ui/recipes';
 
 export const ProfileEditPage = () => {
   const navigate = useNavigate();
@@ -50,58 +51,63 @@ export const ProfileEditPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center">
-        <Loader size="lg" />
+      <div className={contentShell}>
+        <div className={`${contentContainer} flex justify-center py-12`}>
+          <Loader size="lg" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-lg">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
-        ← Back
-      </Button>
-      <Card className="p-6">
-        <h1 className="text-2xl font-bold text-fg-primary mb-6">Edit profile</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-fg-secondary mb-1">Full name</label>
+    <div className={contentShell}>
+      <div className={`${contentContainer} max-w-2xl space-y-6 py-8`}>
+        <Button variant="ghost" tone="neutral" onClick={() => navigate(-1)}>
+          Back
+        </Button>
+        <Card radius="xl" className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold text-text-primary">Edit profile</h1>
+            <p className="text-text-secondary">Update your public identity and profile details.</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <Input
+              label="Full name"
               value={form.fullName}
               onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
               placeholder="Full name"
+              variant="filled"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-fg-secondary mb-1">Bio</label>
             <Input
+              label="Bio"
               value={form.bio ?? ''}
               onChange={(e) => setForm((prev) => ({ ...prev, bio: e.target.value || null }))}
               placeholder="Bio"
+              variant="filled"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-fg-secondary mb-1">Avatar URL</label>
             <Input
+              label="Avatar URL"
               value={form.avatarUrl ?? ''}
               onChange={(e) => setForm((prev) => ({ ...prev, avatarUrl: e.target.value || null }))}
               placeholder="https://..."
+              variant="filled"
             />
-          </div>
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate(profile ? routes.profile(profile.userId) : routes.posts)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Card>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving...' : 'Save'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                tone="neutral"
+                onClick={() => navigate(profile ? routes.profile(profile.userId) : routes.posts)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 };

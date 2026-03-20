@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Button, ErrorMessage } from '@/shared/ui';
+import { Button, ErrorMessage, Card, Badge } from '@/shared/ui';
 import { routes } from '@/shared/config';
 import type { RecordControlsMessageFromPopup } from '@/pages/record-controls';
 import { RecordingModeSelect } from './RecordingModeSelect';
@@ -119,18 +119,18 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
 
   if (isUnsupported) {
     return (
-      <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-6 text-center">
-        <p className="text-slate-700">{unsupportedMessage}</p>
-      </div>
+      <Card variant="muted" elevation="flat" radius="xl" className="text-center">
+        <p className="text-text-secondary">{unsupportedMessage}</p>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Source</label>
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-text-secondary">Source</label>
         <RecordingModeSelect value={mode} onChange={setMode} disabled={state !== 'idle'} />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="text-xs text-text-secondary">
           Choose Screen, Camera or both, then click Start. Works only on HTTPS or localhost.
         </p>
       </div>
@@ -142,49 +142,48 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
         onRetake={resetRecording}
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         {state === 'idle' && (
-          <Button variant="primary" onClick={openControlsPopup} disabled={!mode}>
+          <Button variant="solid" tone="accent" onClick={openControlsPopup} disabled={!mode}>
             Open recording panel
           </Button>
         )}
         {(state === 'recording' || state === 'paused') && (
-          <span className="text-sm text-slate-600">
-            Recording… {Math.floor(liveDurationMs / 60000)}:
+          <Badge variant="soft" tone="accent">
+            Recording... {Math.floor(liveDurationMs / 60000)}:
             {Math.floor((liveDurationMs % 60000) / 1000)
               .toString()
-              .padStart(2, '0')}{' '}
-            (use panel to Pause/Stop)
-          </span>
+              .padStart(2, '0')}
+          </Badge>
         )}
       </div>
 
       {isNearDurationLimit && (
-        <p className="text-sm text-amber-600">
+        <p className="text-sm text-warning">
           Approaching 30 min limit. Recording will stop automatically at the limit.
         </p>
       )}
 
       {error && (
-        <div>
+        <div className="space-y-2">
           <ErrorMessage message={error} />
-          <Button variant="outline" className="mt-2" onClick={resetRecording}>
+          <Button variant="outline" tone="neutral" onClick={resetRecording}>
             Try again
           </Button>
         </div>
       )}
 
       {state === 'stopped' && durationMs > 0 && (
-        <>
+        <div className="space-y-4">
           <TrimControls
             durationMs={durationMs}
             value={{ startMs: trimRange.startMs, endMs: trimEndMs }}
             onChange={setTrimRange}
           />
-          <Button variant="primary" onClick={handleUseRecording}>
-            Use recording & continue to upload
+          <Button variant="solid" tone="accent" onClick={handleUseRecording}>
+            Use recording and continue to upload
           </Button>
-        </>
+        </div>
       )}
     </div>
   );

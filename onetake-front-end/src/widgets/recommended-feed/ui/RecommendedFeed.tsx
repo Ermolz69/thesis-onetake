@@ -34,34 +34,20 @@ export const RecommendedFeed = ({
     };
   }, [limit]);
 
-  if (loading) {
-    return (
-      <section className="py-8">
-        <h2 className="text-2xl font-semibold text-fg-primary mb-4">{title}</h2>
-        <Loader size="lg" />
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="py-8">
-        <h2 className="text-2xl font-semibold text-fg-primary mb-4">{title}</h2>
-        <ErrorMessage message={error} />
-      </section>
-    );
-  }
-
-  if (!posts?.length) return null;
-
   return (
-    <section className="py-8">
-      <h2 className="text-2xl font-semibold text-fg-primary mb-4">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-      </div>
+    <section className="space-y-4 py-8">
+      <h2 className="text-2xl font-semibold text-text-primary">{title}</h2>
+      {loading ? (
+        <Loader size="lg" />
+      ) : error ? (
+        <ErrorMessage message={error} />
+      ) : posts?.length ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 };

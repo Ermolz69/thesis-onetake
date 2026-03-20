@@ -4,7 +4,6 @@ import { http } from '@/shared/api';
 import { api } from '@/shared/config';
 import { useNavigate } from 'react-router-dom';
 import { routes } from '@/shared/config';
-import { btnPrimary } from '@/shared/ui/auth-styles';
 import { AuthContext } from '@/app/providers/auth';
 
 interface LoginFormData {
@@ -107,7 +106,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
     <button
       type="button"
       onClick={() => setPasswordVisible((v) => !v)}
-      className="p-1 rounded-lg text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+      className="rounded-lg p-1 text-text-muted transition hover:text-text-primary focus:outline-none focus:ring-0"
       aria-label={passwordVisible ? 'Hide password' : 'Show password'}
       tabIndex={-1}
     >
@@ -129,7 +128,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           error={registerErrors.email}
           disabled={isLoading}
           autoComplete="email"
-          variant="auth"
+          variant="filled"
           placeholder="you@example.com"
         />
         <Input
@@ -140,7 +139,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           error={registerErrors.username}
           disabled={isLoading}
           autoComplete="username"
-          variant="auth"
+          variant="filled"
           placeholder="username"
         />
         <Input
@@ -151,11 +150,17 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           error={registerErrors.password}
           disabled={isLoading}
           autoComplete="new-password"
-          variant="auth"
+          variant="filled"
           placeholder="At least 6 characters"
           trailing={passwordToggle}
         />
-        <Button type="submit" className={btnPrimary} disabled={isLoading} loading={isLoading}>
+        <Button
+          type="submit"
+          variant="solid"
+          className="w-full"
+          disabled={isLoading}
+          loading={isLoading}
+        >
           {isLoading ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
@@ -173,7 +178,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
         error={loginErrors.login}
         disabled={isLoading}
         autoComplete="username"
-        variant="auth"
+        variant="filled"
         placeholder="Email or username"
       />
       <Input
@@ -184,11 +189,17 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
         error={loginErrors.password}
         disabled={isLoading}
         autoComplete="current-password"
-        variant="auth"
+        variant="filled"
         placeholder="Password"
         trailing={passwordToggle}
       />
-      <Button type="submit" className={btnPrimary} disabled={isLoading} loading={isLoading}>
+      <Button
+        type="submit"
+        variant="solid"
+        className="w-full"
+        disabled={isLoading}
+        loading={isLoading}
+      >
         {isLoading ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

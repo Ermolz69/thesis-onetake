@@ -7,37 +7,37 @@ import { Button, ErrorMessage } from '@/shared/ui';
 import { routes } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
 import {
-  pageContainer,
   contentContainer,
-  btnPrimaryInline,
-  btnSecondaryInline,
-  cardClass,
-  emptyStateWrapper,
-  emptyStateTitle,
+  contentShell,
   emptyStateText,
-  sortSelect,
+  emptyStateTitle,
+  emptyStateWrapper,
   toolbar,
-  tabsWrapper,
-  tabDefault,
-  tabActive,
-} from '@/shared/ui/profile-styles';
+} from '@/shared/ui/recipes';
 import {
-  cover,
-  headerCard,
-  avatar,
-  profileName,
-  profileUsername,
+  profileAboutCard,
+  profileAvatar,
   profileBio,
-  statsGrid,
-  statItem,
-  statValue,
-  statLabel,
-  postsGrid,
-  postCardProfile,
-  postCardPreview,
-  postCardBody,
-  aboutCard,
-} from '@/shared/ui/profile-styles';
+  profileCover,
+  profileFallbackAvatar,
+  profileHeaderCard,
+  profileLink,
+  profileName,
+  profilePostBody,
+  profilePostCard,
+  profilePostPreview,
+  profilePostsGrid,
+  profileSkeletonBlock,
+  profileSkeletonStrong,
+  profileSortSelect,
+  profileStatItem,
+  profileStatLabel,
+  profileStatValue,
+  profileStatsGrid,
+  profileTab,
+  profileTabActive,
+  profileUsername,
+} from './styles';
 
 type Tab = 'posts' | 'about';
 type Sort = 'newest' | 'popular';
@@ -111,38 +111,38 @@ export const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className={`${pageContainer} py-8`}>
+      <div className={`${contentShell} py-8`}>
         <div className={contentContainer}>
-          <div className={`${cover} animate-pulse bg-slate-200/60`} />
-          <div className={`${headerCard} animate-pulse`}>
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <div className={`${avatar} bg-slate-200/80 shrink-0`} />
-              <div className="flex-1 w-full space-y-3">
-                <div className="h-7 w-48 bg-slate-200/80 rounded-lg" />
-                <div className="h-4 w-32 bg-slate-200/80 rounded" />
-                <div className="h-4 w-full max-w-md bg-slate-200/80 rounded" />
-                <div className={`${statsGrid}`}>
+          <div className={`${profileCover} animate-pulse`} />
+          <div className={`${profileHeaderCard} animate-pulse`}>
+            <div className="flex flex-col items-start gap-4 sm:flex-row">
+              <div className={`${profileAvatar} ${profileSkeletonStrong} shrink-0 border-none`} />
+              <div className="flex-1 space-y-3">
+                <div className={`h-7 w-48 ${profileSkeletonStrong}`} />
+                <div className={`h-4 w-32 ${profileSkeletonBlock}`} />
+                <div className={`h-4 w-full max-w-md ${profileSkeletonBlock}`} />
+                <div className={profileStatsGrid}>
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className={`${statItem} bg-slate-200/60`}>
-                      <div className="h-5 w-8 bg-slate-300/80 rounded mx-auto" />
-                      <div className="h-3 w-12 bg-slate-200/80 rounded mt-1 mx-auto" />
+                    <div key={i} className={`${profileStatItem} ${profileSkeletonBlock}`}>
+                      <div className={`mx-auto h-5 w-8 ${profileSkeletonStrong}`} />
+                      <div className={`mx-auto mt-1 h-3 w-12 ${profileSkeletonBlock}`} />
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
-          <div className={tabsWrapper}>
-            <div className={`${tabDefault} w-20 bg-slate-200/60`} />
-            <div className={`${tabDefault} w-16 bg-slate-200/60`} />
+          <div className="mt-6 flex flex-wrap gap-2">
+            <div className={`${profileTab} w-20 ${profileSkeletonBlock} text-transparent`} />
+            <div className={`${profileTab} w-16 ${profileSkeletonBlock} text-transparent`} />
           </div>
-          <div className={postsGrid}>
+          <div className={profilePostsGrid}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className={postCardProfile}>
-                <div className={`${postCardPreview} animate-pulse bg-slate-200/60`} />
-                <div className={postCardBody}>
-                  <div className="h-4 w-3/4 bg-slate-200/80 rounded" />
-                  <div className="h-3 w-1/2 bg-slate-200/60 rounded mt-2" />
+              <div key={i} className={profilePostCard}>
+                <div className={`${profilePostPreview} animate-pulse`} />
+                <div className={profilePostBody}>
+                  <div className={`h-4 w-3/4 ${profileSkeletonStrong}`} />
+                  <div className={`mt-2 h-3 w-1/2 ${profileSkeletonBlock}`} />
                 </div>
               </div>
             ))}
@@ -154,11 +154,11 @@ export const ProfilePage = () => {
 
   if (error || !profile) {
     return (
-      <div className={`${pageContainer} py-8`}>
+      <div className={`${contentShell} py-8`}>
         <div className={contentContainer}>
-          <div className={`${cardClass} max-w-lg mx-auto text-center py-12`}>
+          <div className="mx-auto max-w-lg rounded-2xl border border-border-soft bg-surface-card py-12 text-center shadow-md backdrop-blur">
             <ErrorMessage message={error || 'Profile not found'} className="mb-4" />
-            <Button onClick={() => navigate(routes.posts)} className={btnPrimaryInline}>
+            <Button variant="solid" onClick={() => navigate(routes.posts)}>
               Back to Posts
             </Button>
           </div>
@@ -171,87 +171,79 @@ export const ProfilePage = () => {
   const canFollow = currentUser && !isOwnProfile && profile.isFollowing !== undefined;
 
   return (
-    <div className={`${pageContainer} py-8`}>
+    <div className={`${contentShell} py-8`}>
       <div className={contentContainer}>
-        <div className={cover} />
-        <div className={headerCard}>
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+        <div className={profileCover} />
+        <div className={profileHeaderCard}>
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-6">
             {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.username}
-                className={`${avatar} shrink-0`}
-              />
+              <img src={profile.avatarUrl} alt={profile.username} className={`${profileAvatar} shrink-0`} />
             ) : (
-              <div
-                className={`${avatar} shrink-0 flex items-center justify-center text-2xl sm:text-3xl font-semibold text-slate-500`}
-              >
+              <div className={`${profileAvatar} ${profileFallbackAvatar} shrink-0`}>
                 {(profile.fullName || profile.username).charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className={profileName}>{profile.fullName || profile.username}</h1>
               <p className={profileUsername}>@{profile.username}</p>
               {profile.bio && <p className={profileBio}>{profile.bio}</p>}
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {isOwnProfile && (
                   <>
                     <Link to={routes.profileEdit}>
-                      <button type="button" className={btnPrimaryInline}>
-                        Edit profile
-                      </button>
+                      <Button variant="solid">Edit profile</Button>
                     </Link>
-                    <button type="button" onClick={handleShare} className={btnSecondaryInline}>
+                    <Button type="button" variant="outline" onClick={handleShare}>
                       Share
-                    </button>
+                    </Button>
                   </>
                 )}
                 {canFollow && (
                   <>
-                    <button
+                    <Button
                       type="button"
-                      onClick={handleFollow}
+                      variant={profile.isFollowing ? 'outline' : 'solid'}
                       disabled={followLoading}
-                      className={profile.isFollowing ? btnSecondaryInline : btnPrimaryInline}
+                      onClick={handleFollow}
                     >
                       {followLoading ? '...' : profile.isFollowing ? 'Unfollow' : 'Follow'}
-                    </button>
-                    <button type="button" className={btnSecondaryInline}>
+                    </Button>
+                    <Button type="button" variant="outline">
                       Message
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>
-              <div className={statsGrid}>
-                <div className={statItem}>
-                  <div className={statValue}>{posts.length}</div>
-                  <div className={statLabel}>Posts</div>
+              <div className={profileStatsGrid}>
+                <div className={profileStatItem}>
+                  <div className={profileStatValue}>{posts.length}</div>
+                  <div className={profileStatLabel}>Posts</div>
                 </div>
-                <div className={statItem}>
-                  <div className={statValue}>{profile.followersCount}</div>
-                  <div className={statLabel}>Followers</div>
+                <div className={profileStatItem}>
+                  <div className={profileStatValue}>{profile.followersCount}</div>
+                  <div className={profileStatLabel}>Followers</div>
                 </div>
-                <div className={statItem}>
-                  <div className={statValue}>{profile.followingCount}</div>
-                  <div className={statLabel}>Following</div>
+                <div className={profileStatItem}>
+                  <div className={profileStatValue}>{profile.followingCount}</div>
+                  <div className={profileStatLabel}>Following</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className={tabsWrapper}>
+        <div className="mt-6 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('posts')}
-            className={activeTab === 'posts' ? tabActive : tabDefault}
+            className={activeTab === 'posts' ? profileTabActive : profileTab}
           >
             Posts
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('about')}
-            className={activeTab === 'about' ? tabActive : tabDefault}
+            className={activeTab === 'about' ? profileTabActive : profileTab}
           >
             About
           </button>
@@ -263,7 +255,7 @@ export const ProfilePage = () => {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
-                className={sortSelect}
+                className={profileSortSelect}
                 aria-label="Sort posts"
               >
                 <option value="newest">Newest</option>
@@ -279,42 +271,37 @@ export const ProfilePage = () => {
                     : 'This user has not posted anything yet.'}
                 </p>
                 {isOwnProfile && (
-                  <Link to={routes.record} className="inline-block mt-4">
-                    <button type="button" className={btnPrimaryInline}>
-                      Create your first post
-                    </button>
+                  <Link to={routes.record} className="mt-4 inline-block">
+                    <Button variant="solid">Create your first post</Button>
                   </Link>
                 )}
               </div>
             ) : (
-              <div className={postsGrid}>
+              <div className={profilePostsGrid}>
                 {sortedPosts.map((post) => (
-                  <div key={post.id} className={postCardProfile}>
+                  <div key={post.id} className={profilePostCard}>
                     {post.mediaUrl && (
-                      <div className={postCardPreview}>
+                      <div className={profilePostPreview}>
                         {post.mediaType === MediaType.Video ? (
                           <video
                             src={post.mediaUrl}
-                            className="w-full h-full object-cover"
+                            className="h-full w-full object-cover"
                             controls={false}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-slate-100" />
+                          <div className="flex h-full w-full items-center justify-center bg-surface-muted" />
                         )}
                       </div>
                     )}
-                    {!post.mediaUrl && <div className={postCardPreview} />}
-                    <div className={postCardBody}>
-                      <h3 className="font-semibold text-slate-900 line-clamp-1">
+                    {!post.mediaUrl && <div className={profilePostPreview} />}
+                    <div className={profilePostBody}>
+                      <h3 className="line-clamp-1 font-semibold text-text-primary">
                         {post.contentText || 'Untitled'}
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-text-secondary">
                         {post.likeCount} likes · {post.commentCount} comments
                       </p>
-                      <Link
-                        to={routes.postDetails(post.id)}
-                        className="mt-2 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
+                      <Link to={routes.postDetails(post.id)} className={profileLink}>
                         View post
                       </Link>
                     </div>
@@ -326,9 +313,9 @@ export const ProfilePage = () => {
         )}
 
         {activeTab === 'about' && (
-          <div className={aboutCard}>
-            <h3 className="text-sm font-semibold text-slate-900">Bio</h3>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+          <div className={profileAboutCard}>
+            <h3 className="text-sm font-semibold text-text-primary">Bio</h3>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
               {profile.bio || 'No bio yet.'}
             </p>
           </div>

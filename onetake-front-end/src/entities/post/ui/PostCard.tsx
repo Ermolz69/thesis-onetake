@@ -1,4 +1,5 @@
-import { Card, Badge, Button, HeartIcon, CommentIcon, VideoPlayer } from '@/shared/ui';
+import { Badge, Button, Card, CommentIcon, HeartIcon, VideoPlayer } from '@/shared/ui';
+import { actionRow, mediaCardBody, mediaFrame, metaRow } from '@/shared/ui/recipes';
 import { routes, resolveMediaUrl } from '@/shared/config';
 import { useNavigate, Link } from 'react-router-dom';
 import type { Post } from '@/entities/post/types';
@@ -28,68 +29,80 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleClick}>
-      <div className="space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-fg-primary line-clamp-2">
+    <Card variant="interactive" radius="xl" elevation="raised" className="cursor-pointer p-0" onClick={handleClick}>
+      <div className={mediaFrame}>
+        {post.mediaUrl ? (
+          post.mediaType === MediaType.Video ? (
+            <VideoPlayer
+              src={resolveMediaUrl(post.mediaUrl)}
+              className="h-full w-full object-cover"
+              controls={false}
+            />
+          ) : (
+            <audio src={resolveMediaUrl(post.mediaUrl)} className="h-full w-full" controls={false} />
+          )
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-sm text-text-secondary">
+            No media
+          </div>
+        )}
+      </div>
+
+      <div className={`${mediaCardBody} space-y-3`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 text-lg font-semibold text-text-primary">
               {post.contentText || 'Untitled'}
             </h3>
-            <p className="text-sm text-fg-secondary mt-1">
-              by{' '}
+            <div className={metaRow}>
+              <span>by</span>
               <Link
                 to={routes.profile(post.authorId)}
-                className="hover:underline text-fg-primary"
+                className="font-medium text-text-primary transition hover:text-accent"
                 onClick={(e) => e.stopPropagation()}
               >
                 {post.authorName}
               </Link>
-            </p>
+            </div>
           </div>
-          {post.mediaType === MediaType.Video && <Badge variant="primary">Video</Badge>}
-          {post.mediaType === MediaType.Audio && <Badge variant="default">Audio</Badge>}
+          <Badge
+            variant="soft"
+            tone={post.mediaType === MediaType.Video ? 'accent' : 'neutral'}
+            size="sm"
+          >
+            {post.mediaType === MediaType.Video ? 'Video' : 'Audio'}
+          </Badge>
         </div>
-
-        {post.mediaUrl && (
-          <div className="w-full aspect-video bg-bg-secondary rounded-md overflow-hidden">
-            {post.mediaType === MediaType.Video ? (
-              <VideoPlayer
-                src={resolveMediaUrl(post.mediaUrl)}
-                className="w-full h-full object-cover"
-                controls={false}
-              />
-            ) : (
-              <audio src={resolveMediaUrl(post.mediaUrl)} className="w-full" controls={false} />
-            )}
-          </div>
-        )}
 
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
-              <Badge key={tag} variant="default">
+              <Badge key={tag} variant="soft" tone="neutral" size="sm">
                 {tag}
               </Badge>
             ))}
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div className="flex items-center gap-4 text-sm text-fg-secondary">
+        <div className={actionRow}>
+          <div className="flex items-center gap-4 text-sm text-text-secondary">
             <span className="flex items-center gap-1">
-              <HeartIcon
-                className="w-4 h-4"
-                color={isLiked ? '#ef4444' : 'currentColor'}
-                filled={isLiked}
-              />
+              <span className={isLiked ? 'text-danger' : 'text-text-secondary'}>
+                <HeartIcon className="h-4 w-4" color="currentColor" filled={isLiked} />
+              </span>
               {post.likeCount}
             </span>
             <span className="flex items-center gap-1">
-              <CommentIcon className="w-4 h-4" color="currentColor" />
+              <CommentIcon className="h-4 w-4" color="currentColor" />
               {post.commentCount}
             </span>
           </div>
-          <Button variant={isLiked ? 'primary' : 'outline'} size="sm" onClick={handleLikeClick}>
+          <Button
+            variant={isLiked ? 'soft' : 'outline'}
+            tone={isLiked ? 'danger' : 'neutral'}
+            size="sm"
+            onClick={handleLikeClick}
+          >
             {isLiked ? 'Unlike' : 'Like'}
           </Button>
         </div>

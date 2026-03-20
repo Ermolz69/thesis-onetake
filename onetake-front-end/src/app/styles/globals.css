@@ -99,7 +99,7 @@
   --card-padding-md: 1rem;
   --card-padding-lg: 1.5rem;
 
-  /* Legacy aliases kept for incremental migration */
+  /* Deprecated aliases kept only for incremental page migration */
   --color-bg-primary: var(--surface-page);
   --color-bg-secondary: var(--surface-muted);
   --color-bg-tertiary: var(--foundation-slate-100);

@@ -2,14 +2,14 @@ import { useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RecordWizard } from '@/widgets/record-wizard';
 import { routes } from '@/shared/config';
-import {
-  pageContainer,
-  contentContainer,
-  titleClass,
-  subtitleClass,
-} from '@/shared/ui/record-styles';
 import { AuthContext } from '@/app/providers/auth';
 import { Loader } from '@/shared/ui';
+import {
+  recordContentContainer,
+  recordPageShell,
+  recordPageSubtitle,
+  recordPageTitle,
+} from './styles';
 
 export const RecordPage = () => {
   const navigate = useNavigate();
@@ -34,10 +34,10 @@ export const RecordPage = () => {
   }
 
   return (
-    <div className={pageContainer}>
-      <div className={`${contentContainer} py-8`}>
-        <h1 className={titleClass}>Recording Studio</h1>
-        <p className={subtitleClass}>Record → Publish</p>
+    <div className={recordPageShell}>
+      <div className={`${recordContentContainer} py-8`}>
+        <h1 className={recordPageTitle}>Recording Studio</h1>
+        <p className={recordPageSubtitle}>Record to publish</p>
         <RecordWizard />
       </div>
     </div>
