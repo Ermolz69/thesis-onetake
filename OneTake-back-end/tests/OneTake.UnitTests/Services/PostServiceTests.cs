@@ -125,6 +125,66 @@ namespace OneTake.UnitTests.Services
             Result result = await service.LikePostAsync(postId, userId);
 
             Assert.True(result.IsSuccess);
+            reactionsMock.Verify(r => r.AddAsync(It.Is<Reaction>(reaction => reaction.PostId == postId && reaction.UserId == userId)), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            notificationMock.Verify(
+                n => n.CreateAsync(post.AuthorId, NotificationType.LikeOnPost, "New like", "Someone liked your post", "post", postId, It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task LikePostAsync_ReturnsSuccessWithoutSideEffects_WhenAlreadyLiked()
+        {
+            Guid postId = Guid.NewGuid();
+            Guid userId = Guid.NewGuid();
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock
+                .Setup(r => r.ExistsByPostAndUserAsync(postId, userId, ReactionType.Like))
+                .ReturnsAsync(true);
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+            Result result = await service.LikePostAsync(postId, userId);
+
+            Assert.True(result.IsSuccess);
+            reactionsMock.Verify(r => r.AddAsync(It.IsAny<Reaction>()), Times.Never);
+            postsMock.Verify(r => r.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+            notificationMock.Verify(
+                n => n.CreateAsync(It.IsAny<Guid>(), It.IsAny<NotificationType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task LikePostAsync_DoesNotNotify_WhenAuthorLikesOwnPost()
+        {
+            Guid postId = Guid.NewGuid();
+            Guid userId = Guid.NewGuid();
+            Post post = new Post { Id = postId, AuthorId = userId };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            postsMock.Setup(r => r.GetByIdAsync(postId)).ReturnsAsync(post);
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock
+                .Setup(r => r.ExistsByPostAndUserAsync(postId, userId, ReactionType.Like))
+                .ReturnsAsync(false);
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+            Result result = await service.LikePostAsync(postId, userId);
+
+            Assert.True(result.IsSuccess);
+            notificationMock.Verify(
+                n => n.CreateAsync(It.IsAny<Guid>(), It.IsAny<NotificationType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]
@@ -265,6 +325,31 @@ namespace OneTake.UnitTests.Services
         }
 
         [Fact]
+        public async Task DeletePostAsync_DeletesAssociatedMedia_WhenPostHasMedia()
+        {
+            Guid userId = Guid.NewGuid();
+            MediaObject media = new MediaObject { Id = Guid.NewGuid(), Path = "media/test.mp4" };
+            Post post = new Post { AuthorId = userId, MediaId = media.Id };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            postsMock.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            Mock<IMediaObjectRepository> mediaMock = new Mock<IMediaObjectRepository>();
+            mediaMock.Setup(r => r.GetByIdAsync(media.Id)).ReturnsAsync(media);
+            unitOfWorkMock.Setup(u => u.MediaObjects).Returns(mediaMock.Object);
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+            Result result = await service.DeletePostAsync(post.Id, userId, false);
+
+            Assert.True(result.IsSuccess);
+            fileStorageMock.Verify(f => f.DeleteFileAsync(media.Path), Times.Once);
+            mediaMock.Verify(r => r.Remove(media), Times.Once);
+            postsMock.Verify(r => r.Remove(post), Times.Once);
+        }
+
+        [Fact]
         public async Task CreatePostAsync_ReturnsSuccess_WhenValidRequest()
         {
             Guid userId = Guid.NewGuid();
@@ -323,6 +408,66 @@ namespace OneTake.UnitTests.Services
             fileStorageMock.Verify(f => f.SaveFileAsync(It.IsAny<Stream>(), fileName, MediaType.Video), Times.Once);
             tagsMock.Verify(r => r.GetOrCreateByNameAsync("t1"), Times.Once);
             unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreatePostAsync_UsesAudioMediaTypeAndDefaultVisibility_WhenContentIsNotVideo()
+        {
+            Guid userId = Guid.NewGuid();
+            var request = new CreatePostRequest("podcast", null, null);
+            using Stream fileStream = new MemoryStream();
+            var media = new MediaObject
+            {
+                Id = Guid.NewGuid(),
+                Url = "https://example.com/a.mp3",
+                MediaType = MediaType.Audio
+            };
+            Post? createdPost = null;
+            var postForGet = new Post
+            {
+                Id = Guid.NewGuid(),
+                AuthorId = userId,
+                ContentText = "podcast",
+                MediaType = MediaType.Audio,
+                Visibility = Visibility.Public,
+                Author = new User { Username = "creator" },
+                Media = media,
+                PostTags = new List<PostTag>()
+            };
+
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            fileStorageMock
+                .Setup(f => f.SaveFileAsync(It.IsAny<Stream>(), "episode.mp3", MediaType.Audio))
+                .ReturnsAsync(media);
+            Mock<IMediaObjectRepository> mediaMock = new Mock<IMediaObjectRepository>();
+            Mock<ITagRepository> tagsMock = new Mock<ITagRepository>();
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            postsMock
+                .Setup(r => r.AddAsync(It.IsAny<Post>()))
+                .Callback<Post>(post => createdPost = post)
+                .Returns(Task.CompletedTask);
+            postsMock.Setup(r => r.GetByIdWithDetailsAsync(It.IsAny<Guid>())).ReturnsAsync(postForGet);
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock.Setup(r => r.CountByPostAndTypeAsync(It.IsAny<Guid>(), It.IsAny<ReactionType>())).ReturnsAsync(0);
+            Mock<ICommentRepository> commentsMock = new Mock<ICommentRepository>();
+            commentsMock.Setup(c => c.CountByPostIdAsync(It.IsAny<Guid>())).ReturnsAsync(0);
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.Setup(u => u.MediaObjects).Returns(mediaMock.Object);
+            unitOfWorkMock.Setup(u => u.Tags).Returns(tagsMock.Object);
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
+            unitOfWorkMock.Setup(u => u.Comments).Returns(commentsMock.Object);
+            unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+            Result<PostDto> result = await service.CreatePostAsync(userId, request, fileStream, "episode.mp3", "audio/mpeg");
+
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(createdPost);
+            Assert.Equal(MediaType.Audio, createdPost!.MediaType);
+            Assert.Equal(Visibility.Public, createdPost.Visibility);
+            tagsMock.Verify(r => r.GetOrCreateByNameAsync(It.IsAny<string>()), Times.Never);
         }
     }
 }

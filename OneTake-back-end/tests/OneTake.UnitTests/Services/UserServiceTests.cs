@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using Moq;
 using OneTake.Application.Common.Interfaces;
@@ -48,6 +49,62 @@ namespace OneTake.UnitTests.Services
         }
 
         [Fact]
+        public async Task GetProfileAsync_ReturnsFollowState_WhenViewerIsAnotherUser()
+        {
+            Guid userId = Guid.NewGuid();
+            Guid viewerId = Guid.NewGuid();
+            User user = new User
+            {
+                Id = userId,
+                Username = "target",
+                Profile = new Profile { FullName = "Target User" }
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IUserRepository> usersMock = new Mock<IUserRepository>();
+            usersMock.Setup(r => r.GetByIdWithProfileAsync(userId)).ReturnsAsync(user);
+            unitOfWorkMock.Setup(u => u.Users).Returns(usersMock.Object);
+            Mock<IFollowRepository> followsMock = new Mock<IFollowRepository>();
+            followsMock.Setup(r => r.GetFollowersAsync(userId)).ReturnsAsync(new List<Follow>());
+            followsMock.Setup(r => r.GetFollowingAsync(userId)).ReturnsAsync(new List<Follow>());
+            followsMock.Setup(r => r.IsFollowingAsync(viewerId, userId)).ReturnsAsync(true);
+            unitOfWorkMock.Setup(u => u.Follows).Returns(followsMock.Object);
+
+            IUserService service = new UserService(unitOfWorkMock.Object);
+            Result<ProfileDto> result = await service.GetProfileAsync(userId, viewerId);
+
+            Assert.True(result.IsSuccess);
+            Assert.True(result.Value!.IsFollowing);
+            followsMock.Verify(r => r.IsFollowingAsync(viewerId, userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetProfileAsync_DoesNotQueryFollowState_WhenViewerIsSameUser()
+        {
+            Guid userId = Guid.NewGuid();
+            User user = new User
+            {
+                Id = userId,
+                Username = "self",
+                Profile = new Profile { FullName = "Self User" }
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IUserRepository> usersMock = new Mock<IUserRepository>();
+            usersMock.Setup(r => r.GetByIdWithProfileAsync(userId)).ReturnsAsync(user);
+            unitOfWorkMock.Setup(u => u.Users).Returns(usersMock.Object);
+            Mock<IFollowRepository> followsMock = new Mock<IFollowRepository>();
+            followsMock.Setup(r => r.GetFollowersAsync(userId)).ReturnsAsync(new List<Follow>());
+            followsMock.Setup(r => r.GetFollowingAsync(userId)).ReturnsAsync(new List<Follow>());
+            unitOfWorkMock.Setup(u => u.Follows).Returns(followsMock.Object);
+
+            IUserService service = new UserService(unitOfWorkMock.Object);
+            Result<ProfileDto> result = await service.GetProfileAsync(userId, userId);
+
+            Assert.True(result.IsSuccess);
+            Assert.Null(result.Value!.IsFollowing);
+            followsMock.Verify(r => r.IsFollowingAsync(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
+        }
+
+        [Fact]
         public async Task UpdateProfileAsync_ReturnsNotFound_WhenProfileDoesNotExist()
         {
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -76,6 +133,8 @@ namespace OneTake.UnitTests.Services
             Assert.True(result.IsSuccess);
             Assert.Equal("NewName", profile.FullName);
             Assert.Equal("Bio", profile.Bio);
+            profilesMock.Verify(r => r.Update(profile), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

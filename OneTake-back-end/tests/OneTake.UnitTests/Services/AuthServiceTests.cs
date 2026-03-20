@@ -118,6 +118,52 @@ namespace OneTake.UnitTests.Services
         }
 
         [Fact]
+        public async Task RefreshAsync_ReturnsUnauthorized_WhenTokenExpired()
+        {
+            RefreshToken expiredToken = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(-1),
+                User = new User { Username = "expired", Email = "expired@example.com", Role = UserRole.Author }
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IRefreshTokenRepository> refreshMock = new Mock<IRefreshTokenRepository>();
+            refreshMock.Setup(r => r.FindByTokenHashAsync(It.IsAny<string>())).ReturnsAsync(expiredToken);
+            unitOfWorkMock.Setup(u => u.RefreshTokens).Returns(refreshMock.Object);
+            Mock<IRefreshTokenHasher> hasherMock = new Mock<IRefreshTokenHasher>();
+            hasherMock.Setup(h => h.Hash(It.IsAny<string>())).Returns("hash");
+
+            IAuthService service = CreateService(unitOfWorkMock: unitOfWorkMock, refreshTokenHasherMock: hasherMock);
+            Result<RefreshResult> result = await service.RefreshAsync("expired-token");
+
+            Assert.False(result.IsSuccess);
+            refreshMock.Verify(r => r.RevokeAllForUserAsync(It.IsAny<Guid>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_ReturnsUnauthorized_WhenTokenRevoked()
+        {
+            RefreshToken revokedToken = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                RevokedAt = DateTime.UtcNow.AddMinutes(-1),
+                User = new User { Username = "revoked", Email = "revoked@example.com", Role = UserRole.Author }
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IRefreshTokenRepository> refreshMock = new Mock<IRefreshTokenRepository>();
+            refreshMock.Setup(r => r.FindByTokenHashAsync(It.IsAny<string>())).ReturnsAsync(revokedToken);
+            unitOfWorkMock.Setup(u => u.RefreshTokens).Returns(refreshMock.Object);
+            Mock<IRefreshTokenHasher> hasherMock = new Mock<IRefreshTokenHasher>();
+            hasherMock.Setup(h => h.Hash(It.IsAny<string>())).Returns("hash");
+
+            IAuthService service = CreateService(unitOfWorkMock: unitOfWorkMock, refreshTokenHasherMock: hasherMock);
+            Result<RefreshResult> result = await service.RefreshAsync("revoked-token");
+
+            Assert.False(result.IsSuccess);
+        }
+
+        [Fact]
         public async Task GetMeAsync_ReturnsFail_WhenUserNotFound()
         {
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -189,6 +235,11 @@ namespace OneTake.UnitTests.Services
             Assert.Equal("access", result.Value.Auth.AccessToken);
             Assert.Equal("refresh", result.Value.RefreshTokenValue);
             usersMock.Verify(r => r.AddAsync(It.Is<User>(u => u.Username == "newuser" && u.Email == "new@e.com")), Times.Once);
+            profileMock.Verify(
+                r => r.AddAsync(It.Is<Profile>(p => p.FullName == "newuser" && p.UserId != Guid.Empty)),
+                Times.Once);
+            refreshMock.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -220,6 +271,56 @@ namespace OneTake.UnitTests.Services
             Assert.NotNull(result.Value);
             Assert.Equal("newAccess", result.Value.Auth.AccessToken);
             Assert.Equal("newRefresh", result.Value.RefreshTokenValue);
+            refreshMock.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Once);
+            refreshMock.Verify(r => r.Update(existingToken), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task RefreshAsync_RevokesAllSessions_WhenRefreshTokenReuseDetected()
+        {
+            User user = new User { Username = "reuse", Email = "reuse@example.com", Role = UserRole.Author };
+            RefreshToken reusedToken = new RefreshToken
+            {
+                UserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(1),
+                UsedAt = DateTime.UtcNow.AddMinutes(-5),
+                User = user
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IRefreshTokenRepository> refreshMock = new Mock<IRefreshTokenRepository>();
+            refreshMock.Setup(r => r.FindByTokenHashAsync(It.IsAny<string>())).ReturnsAsync(reusedToken);
+            unitOfWorkMock.Setup(u => u.RefreshTokens).Returns(refreshMock.Object);
+            Mock<IRefreshTokenHasher> hasherMock = new Mock<IRefreshTokenHasher>();
+            hasherMock.Setup(h => h.Hash(It.IsAny<string>())).Returns("hash");
+
+            IAuthService service = CreateService(unitOfWorkMock: unitOfWorkMock, refreshTokenHasherMock: hasherMock);
+            Result<RefreshResult> result = await service.RefreshAsync("reused-token");
+
+            Assert.False(result.IsSuccess);
+            refreshMock.Verify(r => r.RevokeAllForUserAsync(user.Id), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_ReturnsUnauthorized_WhenTokenUserIsMissing()
+        {
+            RefreshToken tokenWithoutUser = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                ExpiresAt = DateTime.UtcNow.AddDays(1)
+            };
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IRefreshTokenRepository> refreshMock = new Mock<IRefreshTokenRepository>();
+            refreshMock.Setup(r => r.FindByTokenHashAsync(It.IsAny<string>())).ReturnsAsync(tokenWithoutUser);
+            unitOfWorkMock.Setup(u => u.RefreshTokens).Returns(refreshMock.Object);
+            Mock<IRefreshTokenHasher> hasherMock = new Mock<IRefreshTokenHasher>();
+            hasherMock.Setup(h => h.Hash(It.IsAny<string>())).Returns("hash");
+
+            IAuthService service = CreateService(unitOfWorkMock: unitOfWorkMock, refreshTokenHasherMock: hasherMock);
+            Result<RefreshResult> result = await service.RefreshAsync("token-without-user");
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
@@ -238,6 +339,23 @@ namespace OneTake.UnitTests.Services
 
             Assert.NotNull(existingToken.RevokedAt);
             refreshMock.Verify(r => r.Update(existingToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task RevokeRefreshTokenAsync_DoesNothing_WhenTokenIsMissing()
+        {
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IRefreshTokenRepository> refreshMock = new Mock<IRefreshTokenRepository>();
+            unitOfWorkMock.Setup(u => u.RefreshTokens).Returns(refreshMock.Object);
+            Mock<IRefreshTokenHasher> hasherMock = new Mock<IRefreshTokenHasher>();
+
+            IAuthService service = CreateService(unitOfWorkMock: unitOfWorkMock, refreshTokenHasherMock: hasherMock);
+            await service.RevokeRefreshTokenAsync(null);
+            await service.RevokeRefreshTokenAsync("");
+
+            hasherMock.Verify(h => h.Hash(It.IsAny<string>()), Times.Never);
+            refreshMock.Verify(r => r.FindByTokenHashAsync(It.IsAny<string>()), Times.Never);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

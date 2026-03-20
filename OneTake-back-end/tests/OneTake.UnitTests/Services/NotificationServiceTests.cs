@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using Moq;
 using OneTake.Application.Common.Interfaces;
 using OneTake.Application.Common.Results;
@@ -50,11 +51,19 @@ namespace OneTake.UnitTests.Services
         [Fact]
         public async Task GetPagedAsync_ReturnsSuccessWithItems_WhenNotificationsExist()
         {
-            Notification n = new Notification { Title = "Hi", Body = "Body", Type = NotificationType.LikeOnPost };
+            DateTime createdAt = new DateTime(2026, 3, 20, 10, 30, 0, DateTimeKind.Utc);
+            Notification n = new Notification
+            {
+                Id = Guid.NewGuid(),
+                Title = "Hi",
+                Body = "Body",
+                Type = NotificationType.LikeOnPost,
+                CreatedAt = createdAt
+            };
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
             Mock<INotificationRepository> notificationsMock = new Mock<INotificationRepository>();
             notificationsMock.Setup(r => r.GetPagedAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<int>()))
-                .ReturnsAsync((new List<Notification> { n }, false));
+                .ReturnsAsync((new List<Notification> { n }, true));
             unitOfWorkMock.Setup(u => u.Notifications).Returns(notificationsMock.Object);
 
             INotificationService service = new NotificationService(unitOfWorkMock.Object);
@@ -63,6 +72,8 @@ namespace OneTake.UnitTests.Services
             Assert.True(result.IsSuccess);
             Assert.Single(result.Value!.Items);
             Assert.Equal("Hi", result.Value.Items[0].Title);
+            Assert.True(result.Value.HasMore);
+            Assert.Equal($"{createdAt:O}|{n.Id}", result.Value.NextCursor);
         }
 
         [Fact]
@@ -117,16 +128,22 @@ namespace OneTake.UnitTests.Services
         public async Task MarkAllAsReadAsync_ReturnsSuccess()
         {
             Guid userId = Guid.NewGuid();
+            Notification unreadOne = new Notification { UserId = userId, IsRead = false };
+            Notification unreadTwo = new Notification { UserId = userId, IsRead = false };
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
             Mock<INotificationRepository> notificationsMock = new Mock<INotificationRepository>();
             notificationsMock.Setup(r => r.FindAsync(It.IsAny<Expression<Func<Notification, bool>>>()))
-                .ReturnsAsync(new List<Notification>());
+                .ReturnsAsync(new List<Notification> { unreadOne, unreadTwo });
             unitOfWorkMock.Setup(u => u.Notifications).Returns(notificationsMock.Object);
 
             INotificationService service = new NotificationService(unitOfWorkMock.Object);
             Result result = await service.MarkAllAsReadAsync(userId);
 
             Assert.True(result.IsSuccess);
+            Assert.True(unreadOne.IsRead);
+            Assert.True(unreadTwo.IsRead);
+            notificationsMock.Verify(r => r.Update(It.IsAny<Notification>()), Times.Exactly(2));
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -140,6 +157,7 @@ namespace OneTake.UnitTests.Services
             await service.CreateAsync(Guid.NewGuid(), NotificationType.CommentOnPost, "Title", "Body", "post", Guid.NewGuid());
 
             notificationsMock.Verify(r => r.AddAsync(It.Is<Notification>(n => n.Title == "Title" && n.Body == "Body")), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

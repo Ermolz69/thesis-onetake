@@ -81,11 +81,11 @@ Migrations are in `OneTake.Infrastructure/Migrations`. From the backend solution
 
 From the backend directory (`OneTake-back-end`):
 
-- **Unit tests (61):**
+- **Unit tests:**
   ```bash
   dotnet test tests/OneTake.UnitTests/OneTake.UnitTests.csproj -c Release
   ```
-- **Integration tests (27):** use InMemory DB and test auth; require no external DB.
+- **Integration tests:** use InMemory DB and test auth; require no external DB.
   ```bash
   dotnet test tests/OneTake.IntegrationTests/OneTake.IntegrationTests.csproj -c Release
   ```

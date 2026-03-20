@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using Moq;
 using OneTake.Application.Common.Interfaces;
@@ -74,6 +75,8 @@ namespace OneTake.UnitTests.Services
 
             Assert.True(result.IsSuccess);
             Assert.Equal(UserRole.Admin, user.Role);
+            usersMock.Verify(r => r.Update(user), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
