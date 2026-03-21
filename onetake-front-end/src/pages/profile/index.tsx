@@ -6,6 +6,7 @@ import { MediaType } from '@/entities/post';
 import { Button, ErrorMessage } from '@/shared/ui';
 import { routes } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
+import { useI18n } from '@/app/providers/i18n';
 import {
   contentContainer,
   contentShell,
@@ -43,6 +44,7 @@ type Tab = 'posts' | 'about';
 type Sort = 'newest' | 'popular';
 
 export const ProfilePage = () => {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -64,9 +66,9 @@ export const ProfilePage = () => {
         setProfile(p);
         setPosts(resp.posts ?? []);
       })
-      .catch(() => setError('Failed to load profile'))
+      .catch(() => setError(t('profile.loadFailed')))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     loadProfile();
@@ -157,9 +159,9 @@ export const ProfilePage = () => {
       <div className={`${contentShell} py-8`}>
         <div className={contentContainer}>
           <div className="mx-auto max-w-lg rounded-2xl border border-border-soft bg-surface-card py-12 text-center shadow-md backdrop-blur">
-            <ErrorMessage message={error || 'Profile not found'} className="mb-4" />
+            <ErrorMessage message={error || t('profile.notFound')} className="mb-4" />
             <Button variant="solid" onClick={() => navigate(routes.posts)}>
-              Back to Posts
+              {t('profile.backToPosts')}
             </Button>
           </div>
         </div>
@@ -195,10 +197,10 @@ export const ProfilePage = () => {
                 {isOwnProfile && (
                   <>
                     <Link to={routes.profileEdit}>
-                      <Button variant="solid">Edit profile</Button>
+                      <Button variant="solid">{t('profile.editProfile')}</Button>
                     </Link>
                     <Button type="button" variant="outline" onClick={handleShare}>
-                      Share
+                      {t('profile.share')}
                     </Button>
                   </>
                 )}
@@ -210,10 +212,14 @@ export const ProfilePage = () => {
                       disabled={followLoading}
                       onClick={handleFollow}
                     >
-                      {followLoading ? '...' : profile.isFollowing ? 'Unfollow' : 'Follow'}
+                      {followLoading
+                        ? '...'
+                        : profile.isFollowing
+                          ? t('profile.unfollow')
+                          : t('profile.follow')}
                     </Button>
                     <Button type="button" variant="outline">
-                      Message
+                      {t('profile.message')}
                     </Button>
                   </>
                 )}
@@ -221,15 +227,15 @@ export const ProfilePage = () => {
               <div className={profileStatsGrid}>
                 <div className={profileStatItem}>
                   <div className={profileStatValue}>{posts.length}</div>
-                  <div className={profileStatLabel}>Posts</div>
+                  <div className={profileStatLabel}>{t('profile.posts')}</div>
                 </div>
                 <div className={profileStatItem}>
                   <div className={profileStatValue}>{profile.followersCount}</div>
-                  <div className={profileStatLabel}>Followers</div>
+                  <div className={profileStatLabel}>{t('profile.followers')}</div>
                 </div>
                 <div className={profileStatItem}>
                   <div className={profileStatValue}>{profile.followingCount}</div>
-                  <div className={profileStatLabel}>Following</div>
+                  <div className={profileStatLabel}>{t('profile.following')}</div>
                 </div>
               </div>
             </div>
@@ -242,14 +248,14 @@ export const ProfilePage = () => {
             onClick={() => setActiveTab('posts')}
             className={activeTab === 'posts' ? profileTabActive : profileTab}
           >
-            Posts
+            {t('profile.posts')}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('about')}
             className={activeTab === 'about' ? profileTabActive : profileTab}
           >
-            About
+            {t('profile.about')}
           </button>
         </div>
 
@@ -260,23 +266,21 @@ export const ProfilePage = () => {
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
                 className={profileSortSelect}
-                aria-label="Sort posts"
+                aria-label={t('profile.sortAria')}
               >
-                <option value="newest">Newest</option>
-                <option value="popular">Popular</option>
+                <option value="newest">{t('profile.newest')}</option>
+                <option value="popular">{t('profile.popular')}</option>
               </select>
             </div>
             {sortedPosts.length === 0 ? (
               <div className={emptyStateWrapper}>
-                <p className={emptyStateTitle}>No posts yet</p>
+                <p className={emptyStateTitle}>{t('profile.emptyTitle')}</p>
                 <p className={emptyStateText}>
-                  {isOwnProfile
-                    ? 'Create your first post to share with others.'
-                    : 'This user has not posted anything yet.'}
+                  {isOwnProfile ? t('profile.ownEmptyBody') : t('profile.otherEmptyBody')}
                 </p>
                 {isOwnProfile && (
                   <Link to={routes.record} className="mt-4 inline-block">
-                    <Button variant="solid">Create your first post</Button>
+                    <Button variant="solid">{t('profile.createFirstPost')}</Button>
                   </Link>
                 )}
               </div>
@@ -300,13 +304,14 @@ export const ProfilePage = () => {
                     {!post.mediaUrl && <div className={profilePostPreview} />}
                     <div className={profilePostBody}>
                       <h3 className="line-clamp-1 font-semibold text-text-primary">
-                        {post.contentText || 'Untitled'}
+                        {post.contentText || t('profile.untitled')}
                       </h3>
                       <p className="mt-1 text-sm text-text-secondary">
-                        {post.likeCount} likes · {post.commentCount} comments
+                        {post.likeCount} {t('common.likes')} · {post.commentCount}{' '}
+                        {t('common.comments')}
                       </p>
                       <Link to={routes.postDetails(post.id)} className={profileLink}>
-                        View post
+                        {t('profile.viewPost')}
                       </Link>
                     </div>
                   </div>
@@ -318,9 +323,9 @@ export const ProfilePage = () => {
 
         {activeTab === 'about' && (
           <div className={profileAboutCard}>
-            <h3 className="text-sm font-semibold text-text-primary">Bio</h3>
+            <h3 className="text-sm font-semibold text-text-primary">{t('profile.bio')}</h3>
             <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              {profile.bio || 'No bio yet.'}
+              {profile.bio || t('profile.noBio')}
             </p>
           </div>
         )}

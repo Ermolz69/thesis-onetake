@@ -6,6 +6,7 @@ import type { TrimRange } from '@/features/recording-studio';
 import { useChunkUpload } from '@/features/chunk-upload/useChunkUpload';
 import { UploadProgress } from './UploadProgress';
 import { createVideoThumbnail } from '@/shared/lib/video-thumbnail';
+import { useI18n } from '@/app/providers/i18n';
 
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
 const MAX_FILE_SIZE_GB = 2;
@@ -20,6 +21,7 @@ export interface ChunkUploadFormProps {
 }
 
 export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProps) => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [contentText, setContentText] = useState('');
   const [tagsStr, setTagsStr] = useState('');
@@ -81,9 +83,9 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Badge variant="soft" tone="success">
-            Ready
+            {t('upload.ready')}
           </Badge>
-          <p className="font-medium text-text-primary">Post created</p>
+          <p className="font-medium text-text-primary">{t('upload.postCreated')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -91,10 +93,10 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
             tone="accent"
             onClick={() => navigate(routes.postDetails(post.id))}
           >
-            View post
+            {t('upload.viewPost')}
           </Button>
           <Button variant="outline" tone="neutral" onClick={() => navigate(routes.record)}>
-            Record another
+            {t('upload.recordAnother')}
           </Button>
         </div>
       </div>
@@ -106,18 +108,18 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Badge variant="soft" tone="danger">
-            Issue
+            {t('upload.issue')}
           </Badge>
-          <p className="font-medium text-text-primary">Upload failed</p>
+          <p className="font-medium text-text-primary">{t('upload.uploadFailed')}</p>
         </div>
         {error && <ErrorMessage message={error} />}
         <div className="flex flex-wrap gap-2">
           <Button variant="solid" tone="accent" onClick={() => reset()}>
-            Retry
+            {t('common.retry')}
           </Button>
           {onBack && (
             <Button variant="outline" tone="neutral" onClick={onBack}>
-              Back to recording
+              {t('upload.backToRecording')}
             </Button>
           )}
         </div>
@@ -128,14 +130,14 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
   if (status === 'cancelled') {
     return (
       <div className="space-y-4">
-        <p className="font-medium text-text-primary">Upload cancelled</p>
+        <p className="font-medium text-text-primary">{t('upload.uploadCancelled')}</p>
         <div className="flex flex-wrap gap-2">
           <Button variant="solid" tone="accent" onClick={() => reset()}>
-            Start upload
+            {t('upload.startUpload')}
           </Button>
           {onBack && (
             <Button variant="outline" tone="neutral" onClick={onBack}>
-              Back to recording
+              {t('upload.backToRecording')}
             </Button>
           )}
         </div>
@@ -149,65 +151,67 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
         {displayThumbnailUrl ? (
           <img
             src={displayThumbnailUrl}
-            alt="Video preview thumbnail"
+            alt={t('upload.thumbnailAlt')}
             className="aspect-video w-full object-cover"
           />
         ) : isVideoFile ? (
           <video src={previewUrl} muted playsInline className="aspect-video w-full object-cover" />
         ) : (
           <div className="flex aspect-video items-center justify-center bg-surface-elevated px-4 text-center text-sm text-text-secondary">
-            Audio upload ready for publishing
+            {t('upload.audioReady')}
           </div>
         )}
         <div className="flex items-center justify-between gap-3 border-t border-border-soft px-4 py-3">
           <div>
             <p className="text-sm font-medium text-text-primary">{file.name}</p>
             <p className="text-xs text-text-secondary">
-              {displayThumbnailUrl
-                ? 'Preview uses the first available video frame.'
-                : 'Preparing media preview.'}
+              {displayThumbnailUrl ? t('upload.previewFirstFrame') : t('upload.preparingPreview')}
             </p>
           </div>
           <Badge variant="soft" tone={displayThumbnailUrl ? 'success' : 'neutral'}>
-            {displayThumbnailUrl ? 'Thumbnail ready' : 'Preview'}
+            {displayThumbnailUrl ? t('upload.thumbnailReady') : t('common.preview')}
           </Badge>
         </div>
       </div>
 
       <Input
-        label="Description"
+        label={t('upload.description')}
         value={contentText}
         onChange={(e) => setContentText(e.target.value)}
-        placeholder="Content description"
+        placeholder={t('upload.descriptionPlaceholder')}
         variant="filled"
         disabled={isBusy}
       />
       <Input
-        label="Tags (comma-separated)"
+        label={t('upload.tags')}
         value={tagsStr}
         onChange={(e) => setTagsStr(e.target.value)}
-        placeholder="tag1, tag2"
+        placeholder={t('upload.tagsPlaceholder')}
         variant="filled"
         disabled={isBusy}
       />
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-text-secondary">Visibility</label>
+        <label className="block text-sm font-medium text-text-secondary">
+          {t('upload.visibility')}
+        </label>
         <select
           value={visibility}
           onChange={(e) => setVisibility(Number(e.target.value))}
           className={selectClass}
           disabled={isBusy}
         >
-          <option value={0}>Public</option>
-          <option value={1}>Unlisted</option>
+          <option value={0}>{t('common.public')}</option>
+          <option value={1}>{t('common.unlisted')}</option>
         </select>
       </div>
 
       <UploadProgress status={status} progress={progress} />
 
-      <p className="text-sm text-text-secondary">Size: {(file.size / 1024).toFixed(1)} KB</p>
+      <p className="text-sm text-text-secondary">
+        {t('upload.size')}: {(file.size / 1024).toFixed(1)} KB
+      </p>
       {isFileTooLarge && (
-        <p className="text-sm text-danger">File too large (max {MAX_FILE_SIZE_GB} GB).</p>
+        <p className="text-sm text-danger">{t('upload.fileTooLarge', { max: MAX_FILE_SIZE_GB })}</p>
       )}
       {error && <ErrorMessage message={error} />}
 
@@ -222,16 +226,16 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
               onBack();
             }}
           >
-            Back
+            {t('common.back')}
           </Button>
         )}
         {isBusy && (
           <Button type="button" variant="outline" tone="neutral" onClick={cancelUpload}>
-            Cancel upload
+            {t('upload.cancelUpload')}
           </Button>
         )}
         <Button type="submit" variant="solid" tone="accent" disabled={isBusy || isFileTooLarge}>
-          {isBusy ? 'Uploading...' : 'Start upload'}
+          {isBusy ? t('upload.uploading') : t('upload.startUpload')}
         </Button>
       </div>
     </form>

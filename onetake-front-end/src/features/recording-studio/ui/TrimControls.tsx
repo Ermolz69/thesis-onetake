@@ -1,5 +1,6 @@
 import { Input } from '@/shared/ui';
 import type { TrimRange } from '@/features/recording-studio/types';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface TrimControlsProps {
   durationMs: number;
@@ -9,6 +10,7 @@ export interface TrimControlsProps {
 }
 
 export const TrimControls = ({ durationMs, value, onChange, disabled }: TrimControlsProps) => {
+  const { t } = useI18n();
   const max = Math.max(0, durationMs);
   const start = Math.min(value.startMs, max - 100);
   const end = Math.min(Math.max(value.endMs, start + 100), max);
@@ -16,11 +18,13 @@ export const TrimControls = ({ durationMs, value, onChange, disabled }: TrimCont
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-sm font-medium text-text-secondary">Trim (v1)</label>
+        <label className="block text-sm font-medium text-text-secondary">
+          {t('recording.trim')}
+        </label>
       </div>
       <div className="flex flex-wrap items-end gap-4">
         <Input
-          label="Start (ms)"
+          label={t('recording.trimStart')}
           type="number"
           min={0}
           max={max}
@@ -32,7 +36,7 @@ export const TrimControls = ({ durationMs, value, onChange, disabled }: TrimCont
           className="w-28"
         />
         <Input
-          label="End (ms)"
+          label={t('recording.trimEnd')}
           type="number"
           min={start}
           max={max}

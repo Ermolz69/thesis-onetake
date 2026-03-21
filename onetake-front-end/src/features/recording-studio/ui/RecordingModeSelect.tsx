@@ -1,5 +1,6 @@
 import { Button } from '@/shared/ui';
 import type { RecordingMode } from '@/features/recording-studio/types';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface RecordingModeSelectProps {
   value: RecordingMode | null;
@@ -7,16 +8,17 @@ export interface RecordingModeSelectProps {
   disabled?: boolean;
 }
 
-const MODES: { value: RecordingMode; label: string }[] = [
-  { value: 'screen', label: 'Screen' },
-  { value: 'camera', label: 'Camera' },
-  { value: 'screen+camera', label: 'Screen + Camera' },
-];
-
 export const RecordingModeSelect = ({ value, onChange, disabled }: RecordingModeSelectProps) => {
+  const { t } = useI18n();
+  const modes: { value: RecordingMode; label: string }[] = [
+    { value: 'screen', label: t('recording.screen') },
+    { value: 'camera', label: t('recording.camera') },
+    { value: 'screen+camera', label: t('recording.screenCamera') },
+  ];
+
   return (
     <div className="flex flex-wrap gap-2">
-      {MODES.map(({ value: mode, label }) => (
+      {modes.map(({ value: mode, label }) => (
         <Button
           key={mode}
           variant={value === mode ? 'primary' : 'outline'}

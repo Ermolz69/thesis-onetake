@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Badge, Button, ErrorMessage, Card } from '@/shared/ui';
 import { useDevices } from '@/features/recording-studio/useDevices';
 import type { RecordingMode } from '@/features/recording-studio';
+import { useI18n } from '@/app/providers/i18n';
 
 const COUNTDOWN_SEC = 3;
 
@@ -31,6 +32,7 @@ const selectClass =
   'w-full rounded-xl border border-border-soft bg-surface-elevated px-3 py-2 text-text-primary focus:outline-none focus-visible:[box-shadow:var(--input-ring)]';
 
 export const RecordControlsPage = () => {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
   const {
@@ -122,8 +124,8 @@ export const RecordControlsPage = () => {
       <div className="mx-auto max-w-sm">
         <Card radius="xl" className="space-y-5">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-text-primary">Recording panel</h2>
-            <p className="text-sm text-text-secondary">Control the active recording session.</p>
+            <h2 className="text-lg font-semibold text-text-primary">{t('recordControls.title')}</h2>
+            <p className="text-sm text-text-secondary">{t('recordControls.subtitle')}</p>
           </div>
 
           {devicesError && <ErrorMessage message={devicesError} className="mb-2" />}
@@ -131,13 +133,13 @@ export const RecordControlsPage = () => {
           <div className="rounded-2xl border border-border-soft bg-surface-muted/70 p-3 shadow-xs">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-text-primary">Input setup</p>
-                <p className="text-xs text-text-secondary">
-                  Pick the camera and microphone before the countdown starts.
+                <p className="text-sm font-semibold text-text-primary">
+                  {t('recordControls.inputSetup')}
                 </p>
+                <p className="text-xs text-text-secondary">{t('recordControls.inputSetupBody')}</p>
               </div>
               <Badge variant="soft" tone={accessGranted ? 'success' : 'neutral'}>
-                {accessGranted ? 'Ready' : 'Access needed'}
+                {accessGranted ? t('recordControls.ready') : t('recordControls.accessNeeded')}
               </Badge>
             </div>
 
@@ -150,7 +152,9 @@ export const RecordControlsPage = () => {
                 onClick={handleGrantAccess}
                 disabled={!isIdle || loading}
               >
-                {accessGranted ? 'Reconnect devices' : 'Grant access'}
+                {accessGranted
+                  ? t('recordControls.reconnectDevices')
+                  : t('recordControls.grantAccess')}
               </Button>
               <Button
                 type="button"
@@ -160,7 +164,7 @@ export const RecordControlsPage = () => {
                 onClick={() => refresh()}
                 disabled={!isIdle || loading}
               >
-                Refresh list
+                {t('recordControls.refreshList')}
               </Button>
               <Button
                 type="button"
@@ -170,7 +174,9 @@ export const RecordControlsPage = () => {
                 onClick={() => setShowDevicePicker((value) => !value)}
                 disabled={!isIdle}
               >
-                {showDevicePicker ? 'Hide inputs' : 'Choose microphone'}
+                {showDevicePicker
+                  ? t('recordControls.hideInputs')
+                  : t('recordControls.chooseMicrophone')}
               </Button>
             </div>
 
@@ -178,7 +184,9 @@ export const RecordControlsPage = () => {
               <div className="mt-4 space-y-3">
                 {mode !== 'screen' && (
                   <div className="space-y-1">
-                    <label className="block text-xs font-medium text-text-secondary">Camera</label>
+                    <label className="block text-xs font-medium text-text-secondary">
+                      {t('recordControls.camera')}
+                    </label>
                     <select
                       value={selectedVideoDeviceId}
                       onChange={(e) => setVideoDeviceId(e.target.value)}
@@ -192,7 +200,7 @@ export const RecordControlsPage = () => {
                           </option>
                         ))
                       ) : (
-                        <option value="">No cameras detected yet</option>
+                        <option value="">{t('recordControls.noCameras')}</option>
                       )}
                     </select>
                   </div>
@@ -200,7 +208,7 @@ export const RecordControlsPage = () => {
 
                 <div className="space-y-1">
                   <label className="block text-xs font-medium text-text-secondary">
-                    Microphone
+                    {t('recordControls.microphone')}
                   </label>
                   <select
                     value={selectedAudioDeviceId}
@@ -215,7 +223,7 @@ export const RecordControlsPage = () => {
                         </option>
                       ))
                     ) : (
-                      <option value="">No microphones detected yet</option>
+                      <option value="">{t('recordControls.noMicrophones')}</option>
                     )}
                   </select>
                 </div>
@@ -234,7 +242,7 @@ export const RecordControlsPage = () => {
                 onClick={handleStart}
                 disabled={loading || !accessGranted || !canChooseMicrophone}
               >
-                Start (3...2...1)
+                {t('recordControls.startCountdown')}
               </Button>
             )}
             {isRecording && (
@@ -245,15 +253,15 @@ export const RecordControlsPage = () => {
                 <div className="flex gap-2">
                   {remoteState === 'paused' ? (
                     <Button variant="solid" tone="accent" size="md" onClick={handleResume}>
-                      Resume
+                      {t('recording.resume')}
                     </Button>
                   ) : (
                     <Button variant="outline" tone="neutral" size="md" onClick={handlePause}>
-                      Pause
+                      {t('recording.pause')}
                     </Button>
                   )}
                   <Button variant="solid" tone="danger" size="md" onClick={handleStop}>
-                    Stop
+                    {t('recording.stop')}
                   </Button>
                 </div>
               </>

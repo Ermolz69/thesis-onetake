@@ -31,7 +31,7 @@ This document describes the project's conventions for errors, API design, commen
 
 ### Frontend
 
-- Use **ESLint** and **Prettier**; run `npm run lint` and `npm run format:check` before pushing. CI runs these when the frontend is present in the repo.
+- Use **ESLint**, **Prettier**, and frontend tests; run `npm run test`, `npm run lint`, and `npm run format:check` before pushing. CI runs these when the frontend is present in the repo.
 - Use path alias **`@/`** for imports under `src/`; avoid relative parent paths (`../`, `../../`) so `no-restricted-imports` can stay enforced.
 - **Loading and errors:** Prefer a single pattern per feature: either a store (e.g. Zustand) that holds `loading` / `error` and exposes them, or a shared hook. Use the shared **`ErrorMessage`** component (or a single agreed block/toast strategy) to display API errors so UX is consistent.
 - **Types:** Use **`interface`** for API contracts and component props; use **`type`** for unions and aliases. Do not use **`any`** (ESLint reports it as an error).
@@ -45,7 +45,8 @@ This document describes the project's conventions for errors, API design, commen
 ## Checklist before submitting
 
 - [ ] Backend: `dotnet format` passes, tests pass (unit + integration from `OneTake-back-end/`).
-- [ ] Frontend: `npm run lint` and `npm run format:check` pass.
+- [ ] Frontend: `npm run test`, `npm run lint`, `npm run format:check`, and `npm run build` pass.
+- [ ] Analytics: `ruff check .`, `mypy services libs tests`, and `pytest` pass from `OneTakeAnalytics/`.
 - [ ] No domain entities exposed in API responses; use DTOs.
 - [ ] New async code passes and forwards `CancellationToken` where applicable.
 - [ ] No secrets or `.env` with real values committed.

@@ -7,14 +7,14 @@ import { RecordingPreview } from './RecordingPreview';
 import { TrimControls } from './TrimControls';
 import { useRecording } from '@/features/recording-studio/useRecording';
 import type { RecordingMode, TrimRange } from '@/features/recording-studio/types';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface RecordingStudioProps {
   onRecorded?: (file: File, trimRange: TrimRange) => void;
 }
 
-const unsupportedMessage = "Your browser doesn't support in-browser recording. Try Chrome or Edge.";
-
 export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
+  const { t } = useI18n();
   const [mode, setMode] = useState<RecordingMode | null>(null);
   const [trimRange, setTrimRange] = useState<TrimRange>({ startMs: 0, endMs: 0 });
 
@@ -120,7 +120,7 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
   if (isUnsupported) {
     return (
       <Card variant="muted" elevation="flat" radius="xl" className="text-center">
-        <p className="text-text-secondary">{unsupportedMessage}</p>
+        <p className="text-text-secondary">{t('recording.unsupported')}</p>
       </Card>
     );
   }
@@ -128,11 +128,11 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-text-secondary">Source</label>
+        <label className="block text-sm font-medium text-text-secondary">
+          {t('recording.source')}
+        </label>
         <RecordingModeSelect value={mode} onChange={setMode} disabled={state !== 'idle'} />
-        <p className="text-xs text-text-secondary">
-          Choose Screen, Camera or both, then click Start. Works only on HTTPS or localhost.
-        </p>
+        <p className="text-xs text-text-secondary">{t('recording.sourceHint')}</p>
       </div>
 
       <RecordingPreview
@@ -145,12 +145,12 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
       <div className="flex flex-wrap items-center gap-3">
         {state === 'idle' && (
           <Button variant="solid" tone="accent" onClick={openControlsPopup} disabled={!mode}>
-            Open recording panel
+            {t('recording.openPanel')}
           </Button>
         )}
         {(state === 'recording' || state === 'paused') && (
           <Badge variant="soft" tone="accent">
-            Recording... {Math.floor(liveDurationMs / 60000)}:
+            {t('recording.recording')} {Math.floor(liveDurationMs / 60000)}:
             {Math.floor((liveDurationMs % 60000) / 1000)
               .toString()
               .padStart(2, '0')}
@@ -158,17 +158,13 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
         )}
       </div>
 
-      {isNearDurationLimit && (
-        <p className="text-sm text-warning">
-          Approaching 30 min limit. Recording will stop automatically at the limit.
-        </p>
-      )}
+      {isNearDurationLimit && <p className="text-sm text-warning">{t('recording.nearLimit')}</p>}
 
       {error && (
         <div className="space-y-2">
           <ErrorMessage message={error} />
           <Button variant="outline" tone="neutral" onClick={resetRecording}>
-            Try again
+            {t('recording.tryAgain')}
           </Button>
         </div>
       )}
@@ -181,7 +177,7 @@ export const RecordingStudio = ({ onRecorded }: RecordingStudioProps) => {
             onChange={setTrimRange}
           />
           <Button variant="solid" tone="accent" onClick={handleUseRecording}>
-            Use recording and continue to upload
+            {t('recording.useRecording')}
           </Button>
         </div>
       )}

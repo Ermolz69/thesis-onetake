@@ -1,4 +1,5 @@
 import type { ChunkUploadProgress, ChunkUploadStatus } from '@/features/chunk-upload/types';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface UploadProgressProps {
   status: ChunkUploadStatus;
@@ -6,6 +7,7 @@ export interface UploadProgressProps {
 }
 
 export const UploadProgress = ({ status, progress }: UploadProgressProps) => {
+  const { t } = useI18n();
   if (status === 'idle') return null;
 
   return (
@@ -13,10 +15,13 @@ export const UploadProgress = ({ status, progress }: UploadProgressProps) => {
       <div className="flex justify-between text-sm text-text-secondary">
         <span>
           {status === 'uploading' &&
-            `Uploading parts ${progress.uploadedParts}/${progress.totalParts}`}
-          {status === 'finalizing' && 'Finalizing...'}
-          {status === 'done' && 'Done'}
-          {status === 'error' && 'Error'}
+            t('upload.uploadingParts', {
+              uploaded: progress.uploadedParts,
+              total: progress.totalParts,
+            })}
+          {status === 'finalizing' && t('upload.finalizing')}
+          {status === 'done' && t('common.done')}
+          {status === 'error' && t('common.error')}
         </span>
         {(status === 'uploading' || status === 'finalizing') && <span>{progress.percent}%</span>}
       </div>

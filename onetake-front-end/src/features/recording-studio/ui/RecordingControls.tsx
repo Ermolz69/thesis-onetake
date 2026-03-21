@@ -1,5 +1,6 @@
 import { Button } from '@/shared/ui';
 import type { RecordingState } from '@/features/recording-studio/types';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface RecordingControlsProps {
   state: RecordingState;
@@ -18,10 +19,11 @@ export const RecordingControls = ({
   onResume,
   startDisabled,
 }: RecordingControlsProps) => {
+  const { t } = useI18n();
   if (state === 'idle') {
     return (
       <Button variant="primary" onClick={onStart} disabled={startDisabled}>
-        Start recording
+        {t('recording.startRecording')}
       </Button>
     );
   }
@@ -29,10 +31,10 @@ export const RecordingControls = ({
     return (
       <div className="flex gap-2">
         <Button variant="outline" onClick={onPause}>
-          Pause
+          {t('recording.pause')}
         </Button>
         <Button variant="primary" onClick={onStop}>
-          Stop
+          {t('recording.stop')}
         </Button>
       </div>
     );
@@ -41,10 +43,10 @@ export const RecordingControls = ({
     return (
       <div className="flex gap-2">
         <Button variant="primary" onClick={onResume}>
-          Resume
+          {t('recording.resume')}
         </Button>
         <Button variant="outline" onClick={onStop}>
-          Stop
+          {t('recording.stop')}
         </Button>
       </div>
     );

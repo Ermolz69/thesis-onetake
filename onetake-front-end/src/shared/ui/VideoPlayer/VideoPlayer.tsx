@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface VideoPlayerProps {
   src: string;
@@ -78,6 +79,7 @@ function VideoPlayerInner({
   onTimeUpdate,
   onEnded,
 }: VideoPlayerProps) {
+  const { t } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -161,9 +163,9 @@ function VideoPlayerInner({
         onPlay?.();
       })
       .catch(() => {
-        setError('Playback failed. Try interacting with the video again.');
+        setError(t('player.playbackFailed'));
       });
-  }, [onPlay, revealControls]);
+  }, [onPlay, revealControls, t]);
 
   const pause = useCallback(() => {
     const video = videoRef.current;
@@ -331,7 +333,7 @@ function VideoPlayerInner({
       revealControls();
     };
     const handleError = () => {
-      setError('Unable to load this video.');
+      setError(t('player.unableToLoad'));
       setShowControls(true);
     };
 
@@ -356,7 +358,7 @@ function VideoPlayerInner({
       video.removeEventListener('ended', handleEnded);
       video.removeEventListener('error', handleError);
     };
-  }, [handleEnded, onTimeUpdate, revealControls, syncTime, syncVolume]);
+  }, [handleEnded, onTimeUpdate, revealControls, syncTime, syncVolume, t]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -441,7 +443,7 @@ function VideoPlayerInner({
       }}
       tabIndex={0}
       role="application"
-      aria-label="Video player"
+      aria-label={t('player.videoPlayer')}
     >
       <video
         ref={videoRef}
@@ -461,7 +463,13 @@ function VideoPlayerInner({
             type="button"
             onClick={isEnded ? handleReplay : togglePlay}
             className={`pointer-events-auto inline-flex items-center justify-center rounded-pill border border-border-soft/70 bg-surface-card/15 text-text-inverse shadow-md backdrop-blur-md transition hover:bg-surface-card/25 focus-visible:outline-none focus-visible:[box-shadow:var(--input-ring)] ${isCompact ? 'h-14 w-14' : 'h-20 w-20'}`}
-            aria-label={isEnded ? 'Replay video' : isPlaying ? 'Pause video' : 'Play video'}
+            aria-label={
+              isEnded
+                ? t('player.replayVideo')
+                : isPlaying
+                  ? t('player.pauseVideo')
+                  : t('player.playVideo')
+            }
           >
             {isPlaying && !isEnded ? <PauseIcon /> : <PlayIcon />}
           </button>
@@ -471,7 +479,7 @@ function VideoPlayerInner({
       {isBuffering && (
         <div className="absolute inset-x-0 top-4 flex justify-center">
           <div className="rounded-pill border border-border-soft/70 bg-surface-card/15 px-3 py-1 text-xs font-medium text-text-inverse backdrop-blur-md">
-            Buffering...
+            {t('player.buffering')}
           </div>
         </div>
       )}
@@ -496,7 +504,7 @@ function VideoPlayerInner({
             value={progressValue}
             onChange={handleProgressChange}
             className="h-1.5 w-full cursor-pointer appearance-none rounded-pill bg-surface-card/25 accent-accent"
-            aria-label="Seek video"
+            aria-label={t('player.seekVideo')}
           />
 
           <div className={`flex items-center ${isCompact ? 'gap-2' : 'flex-wrap gap-3'}`}>
@@ -504,7 +512,13 @@ function VideoPlayerInner({
               type="button"
               onClick={isEnded ? handleReplay : togglePlay}
               className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
-              aria-label={isEnded ? 'Replay video' : isPlaying ? 'Pause video' : 'Play video'}
+              aria-label={
+                isEnded
+                  ? t('player.replayVideo')
+                  : isPlaying
+                    ? t('player.pauseVideo')
+                    : t('player.playVideo')
+              }
             >
               {isPlaying && !isEnded ? <PauseIcon /> : <PlayIcon />}
             </button>
@@ -514,7 +528,7 @@ function VideoPlayerInner({
                 type="button"
                 onClick={toggleMuted}
                 className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
-                aria-label={muted ? 'Unmute' : 'Mute'}
+                aria-label={muted ? t('player.unmute') : t('player.mute')}
               >
                 <VolumeIcon muted={muted} />
               </button>
@@ -527,7 +541,7 @@ function VideoPlayerInner({
                   value={muted ? 0 : volume}
                   onChange={handleVolumeChange}
                   className="h-1.5 w-20 cursor-pointer appearance-none rounded-pill bg-surface-card/25 accent-accent"
-                  aria-label="Volume"
+                  aria-label={t('player.volume')}
                 />
               )}
             </div>
@@ -541,14 +555,14 @@ function VideoPlayerInner({
             <div className={`ml-auto flex items-center ${isCompact ? 'gap-1.5' : 'gap-2'}`}>
               {isEnded && !isCompact && (
                 <span className="rounded-pill border border-border-soft/70 bg-surface-card/10 px-2.5 py-1 text-xs font-medium text-text-inverse/90">
-                  Ended
+                  {t('player.ended')}
                 </span>
               )}
               <button
                 type="button"
                 onClick={toggleFullscreen}
                 className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
-                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                aria-label={isFullscreen ? t('player.exitFullscreen') : t('player.enterFullscreen')}
               >
                 <FullscreenIcon active={isFullscreen} />
               </button>

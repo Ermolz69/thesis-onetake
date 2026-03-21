@@ -87,6 +87,26 @@ Main deps in `pyproject.toml`: `grpcio`, `grpcio-tools`, `clickhouse-driver`, `r
 
 ---
 
+## Quality checks
+
+Install dev dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Run the local quality suite:
+
+```bash
+ruff check .
+mypy services libs tests
+pytest
+```
+
+`pytest` emits a coverage report to `coverage.xml`, and CI uploads it as an artifact.
+
+---
+
 ## Summary
 
 - **Config:** OS env + optional **`.env`** in `OneTakeAnalytics/` (loaded with `python-dotenv` in each service’s `config.py`).

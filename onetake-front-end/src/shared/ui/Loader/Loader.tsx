@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib';
+import { useI18n } from '@/app/providers/i18n';
 
 type LoaderSize = 'sm' | 'md' | 'lg';
 type LoaderTone = 'accent' | 'neutral';
@@ -39,10 +40,11 @@ export const Loader = ({
   className,
   centered = false,
 }: LoaderProps) => {
+  const { t } = useI18n();
   const palette = toneStyles[tone];
 
   const loader = (
-    <div className="relative" role="status" aria-label="Loading">
+    <div className="relative" role="status" aria-label={t('common.loading')}>
       <div className={cn('relative', sizeStyles[size], className)}>
         <div
           className={cn(
@@ -62,7 +64,7 @@ export const Loader = ({
           <div className={cn('h-1/3 w-1/3 animate-pulse rounded-full', palette.dot)} />
         </div>
       </div>
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{t('common.loading')}</span>
     </div>
   );
 

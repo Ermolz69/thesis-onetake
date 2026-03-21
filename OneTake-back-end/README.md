@@ -35,7 +35,7 @@ All under `/api`; auth endpoints public, rest use `Authorization: Bearer <token>
 |------|-----------|
 | **Auth** | `POST /api/auth/register`, `POST /api/auth/login` |
 | **Users** | `GET /api/users/{id}`, `PUT /api/users/me/profile` (auth) |
-| **Posts** | `GET /api/posts` (list, filter by tag/author, cursor), `GET /api/posts/{id}`, `POST /api/posts` (multipart: file + ContentText, Tags, Visibility), `DELETE /api/posts/{id}`, `POST/DELETE /api/posts/{id}/like`, `GET /api/posts/feed/recommended?limit=` |
+| **Posts** | `GET /api/posts` (list, filter by tag/author, cursor), `GET /api/posts/search?q=` (search + pagination), `GET /api/posts/{id}`, `POST /api/posts` (multipart: file + ContentText, Tags, Visibility), `DELETE /api/posts/{id}`, `POST/DELETE /api/posts/{id}/like`, `GET /api/posts/feed/following`, `GET /api/posts/feed/recommended?limit=` |
 | **Comments** | `GET /api/posts/{postId}/comments`, `POST /api/posts/{postId}/comments` |
 | **Uploads** (chunk) | `POST /api/uploads/init`, `PUT /api/uploads/{uploadId}/parts/{partIndex}` (body: binary), `GET /api/uploads/{uploadId}/status`, `POST /api/uploads/{uploadId}/finalize` |
 | **Analytics** | `POST /api/analytics/events` (body: eventName, propsJson?, entityType?, entityId?) — forwards to Analytics Ingest (auth) |

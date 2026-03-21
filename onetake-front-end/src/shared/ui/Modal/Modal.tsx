@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react';
+import { useI18n } from '@/app/providers/i18n';
 import { cn } from '@/shared/lib';
 import { Button } from '@/shared/ui/Button';
 
@@ -42,6 +43,8 @@ export const Modal = ({
   variant = 'solid',
   elevation = 'floating',
 }: ModalProps) => {
+  const { t } = useI18n();
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -78,7 +81,7 @@ export const Modal = ({
               size="sm"
               radius="pill"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label={t('common.close')}
             >
               x
             </Button>

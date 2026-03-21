@@ -35,7 +35,7 @@ Public API of a slice: re-export via `index.ts`; types in `types.ts`, API in `ap
 | Path | Page |
 |------|------|
 | `/` | Home (CTA, recommended feed) |
-| `/posts` | Posts list (filter, search, pagination) |
+| `/posts` | Posts list (filter, backend search, pagination) |
 | `/record` | Recording Studio → chunk upload → publish |
 | `/posts/:id` | Post details (video/audio, like, comments) |
 | `/auth/login` | Login / register |
@@ -50,6 +50,7 @@ Public API of a slice: re-export via `index.ts`; types in `types.ts`, API in `ap
 - **Chunk upload:** Init → upload parts with progress/retry → finalize; entity `upload`, feature `chunk-upload` (useChunkUpload, ChunkUploadForm, UploadProgress).
 - **Analytics:** `analytics-track` (trackEvent), used in recording (record_start/record_stop), chunk upload (upload_*), and `watch-analytics` (useWatchTrack on post-details video).
 - **Recommended:** `entities/post` `getRecommended(limit)`; widget `recommended-feed` on home.
+- **Settings and i18n:** Theme/language preferences with shared providers and localized shared chrome.
 
 ---
 
@@ -64,6 +65,9 @@ Public API of a slice: re-export via `index.ts`; types in `types.ts`, API in `ap
 ```bash
 npm install
 npm run dev          # dev server
+npm run test         # Vitest + coverage
+npm run test:watch   # Vitest watch mode
+npm run test:e2e     # Playwright smoke tests
 npm run build        # tsc + vite build
 npm run preview      # preview production build
 npm run lint         # ESLint
@@ -71,3 +75,11 @@ npm run format:check # Prettier check (CI)
 ```
 
 Build output: `dist/`. Lock file (`package-lock.json` or `pnpm-lock.yaml`) is committed for reproducible installs.
+
+---
+
+## Testing
+
+- **Unit/component tests:** Vitest + React Testing Library.
+- **E2E smoke tests:** Playwright.
+- **Search contract:** the frontend uses backend `GET /api/posts/search?q=...`; search is not client-only.

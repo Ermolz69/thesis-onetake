@@ -28,6 +28,21 @@ See each project’s **README.md** for setup, config, and API details.
 
 ---
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  FE["onetake-front-end (React/Vite)"] -->|REST| BE["OneTake-back-end (ASP.NET Core API)"]
+  BE -->|gRPC TrackEvent| INGEST["Analytics Ingest (Python)"]
+  BE -->|gRPC GetRecommendations| RECO["Reco Service (Python)"]
+  INGEST -->|writes| CH["ClickHouse"]
+  RECO -->|reads| CH
+  RECO -->|HTTP post/tag lookups| BE
+  BE -->|PostgreSQL| PG["Postgres"]
+```
+
+---
+
 ## Quick start
 
 1. **Backend:** See `OneTake-back-end/README.md`. Requires .NET 10, PostgreSQL. From repo root: `dotnet build OneTake-back-end/OneTake-back-end.slnx` or from `OneTake-back-end/`: `dotnet run --project OneTake.WebApi`. Optional: gRPC endpoints for Analytics/Reco.
@@ -66,4 +81,5 @@ ClickHouse in compose listens on host ports **8124** (HTTP) and **9001** (native
 ## Tests
 
 - **Backend:** From `OneTake-back-end/` run unit and integration tests; see `OneTake-back-end/README.md` (Tests and coverage).
-- **Frontend:** From `onetake-front-end/` run `npm run lint` and `npm run format:check` (CI). See `CONTRIBUTING.md` for conventions.
+- **Frontend:** From `onetake-front-end/` run `npm run test`, `npm run lint`, `npm run format:check`, and `npm run build`.
+- **Analytics:** From `OneTakeAnalytics/` run `ruff check .`, `mypy services libs tests`, and `pytest`.

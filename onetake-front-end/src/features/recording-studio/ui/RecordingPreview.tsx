@@ -3,6 +3,7 @@ import { Button, VideoPlayer } from '@/shared/ui';
 import { mediaFrame } from '@/shared/ui/recipes';
 import type { RecordingState } from '@/features/recording-studio/types';
 import { createVideoThumbnail } from '@/shared/lib/video-thumbnail';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface RecordingPreviewProps {
   state: RecordingState;
@@ -17,6 +18,7 @@ export const RecordingPreview = ({
   recordedBlob,
   onRetake,
 }: RecordingPreviewProps) => {
+  const { t } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const objectUrl = useMemo(
     () => (recordedBlob && state === 'stopped' ? URL.createObjectURL(recordedBlob) : null),
@@ -89,13 +91,13 @@ export const RecordingPreview = ({
         )}
         {showPlaceholder && (
           <div className="absolute inset-0 flex items-center justify-center text-text-muted">
-            Preview will appear here
+            {t('recording.previewPlaceholder')}
           </div>
         )}
       </div>
       {state === 'stopped' && (
         <Button variant="outline" size="md" onClick={onRetake}>
-          Retake
+          {t('recording.retake')}
         </Button>
       )}
     </div>
