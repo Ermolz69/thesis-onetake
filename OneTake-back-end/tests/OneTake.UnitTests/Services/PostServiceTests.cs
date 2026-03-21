@@ -314,6 +314,11 @@ namespace OneTake.UnitTests.Services
             Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
             postsMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(post);
             unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock
+                .Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Reaction, bool>>>()))
+                .ReturnsAsync(new List<Reaction>());
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
             Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
             Mock<INotificationService> notificationMock = new Mock<INotificationService>();
             IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
@@ -334,6 +339,11 @@ namespace OneTake.UnitTests.Services
             Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
             postsMock.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
             unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock
+                .Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Reaction, bool>>>()))
+                .ReturnsAsync(new List<Reaction>());
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
             Mock<IMediaObjectRepository> mediaMock = new Mock<IMediaObjectRepository>();
             mediaMock.Setup(r => r.GetByIdAsync(media.Id)).ReturnsAsync(media);
             unitOfWorkMock.Setup(u => u.MediaObjects).Returns(mediaMock.Object);
@@ -347,6 +357,41 @@ namespace OneTake.UnitTests.Services
             fileStorageMock.Verify(f => f.DeleteFileAsync(media.Path), Times.Once);
             mediaMock.Verify(r => r.Remove(media), Times.Once);
             postsMock.Verify(r => r.Remove(post), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeletePostAsync_RemovesPostReactions_BeforeDeletingPost()
+        {
+            Guid userId = Guid.NewGuid();
+            Guid postId = Guid.NewGuid();
+            Post post = new Post { Id = postId, AuthorId = userId };
+            List<Reaction> reactions = new()
+            {
+                new Reaction { PostId = postId, UserId = Guid.NewGuid(), Type = ReactionType.Like },
+                new Reaction { PostId = postId, UserId = Guid.NewGuid(), Type = ReactionType.Like }
+            };
+
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            postsMock.Setup(r => r.GetByIdAsync(postId)).ReturnsAsync(post);
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock
+                .Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Reaction, bool>>>()))
+                .ReturnsAsync(reactions);
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
+
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+            Result result = await service.DeletePostAsync(postId, userId, false);
+
+            Assert.True(result.IsSuccess);
+            reactionsMock.Verify(r => r.RemoveRange(It.Is<IEnumerable<Reaction>>(items => items.Count() == 2)), Times.Once);
+            postsMock.Verify(r => r.Remove(post), Times.Once);
+            unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

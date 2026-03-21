@@ -212,6 +212,12 @@ namespace OneTake.Application.Services
                 }
             }
 
+            List<Reaction> reactions = await _unitOfWork.Reactions.FindAsync(r => r.PostId == id);
+            if (reactions.Count > 0)
+            {
+                _unitOfWork.Reactions.RemoveRange(reactions);
+            }
+
             _unitOfWork.Posts.Remove(post);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

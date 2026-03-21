@@ -121,6 +121,45 @@ public static class TestApiHelper
         return Guid.Parse(value);
     }
 
+    public static int GetInt(JsonElement element, params string[] propertyNames)
+    {
+        foreach (string propertyName in propertyNames)
+        {
+            if (element.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return value.GetInt32();
+            }
+        }
+
+        throw new InvalidOperationException($"Missing property: {string.Join(", ", propertyNames)}");
+    }
+
+    public static bool GetBool(JsonElement element, params string[] propertyNames)
+    {
+        foreach (string propertyName in propertyNames)
+        {
+            if (element.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return value.GetBoolean();
+            }
+        }
+
+        throw new InvalidOperationException($"Missing property: {string.Join(", ", propertyNames)}");
+    }
+
+    public static JsonElement GetProperty(JsonElement element, params string[] propertyNames)
+    {
+        foreach (string propertyName in propertyNames)
+        {
+            if (element.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return value;
+            }
+        }
+
+        throw new InvalidOperationException($"Missing property: {string.Join(", ", propertyNames)}");
+    }
+
     private static async Task EnsureSuccessWithBodyAsync(HttpResponseMessage response, string operation)
     {
         if (response.IsSuccessStatusCode)

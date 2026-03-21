@@ -42,12 +42,21 @@ This pass focused on the highest-value gaps first:
 - added multi-step integration flows for auth, posts interactions, and chunked upload finalize flow
 - added explicit authorization matrix coverage for anonymous, non-owner, owner, admin, and public/unlisted visibility behavior
 - added following-feed authorization coverage
+- added persistence and query integration coverage for:
+  - post cursor pagination stability, duplicate-free continuation, invalid cursor fallback, and empty-after-last-page behavior
+  - author and tag filtering with explicit public vs unlisted visibility assertions
+  - following-feed inclusion and newest-first ordering for followed vs unfollowed authors
+  - like, unlike, comment, notification, and delete flows with direct database-state verification
+  - profile query behavior for follower counts and viewer-specific follow state
+- exposed and fixed two real backend issues while adding those tests:
+  - repository cursor pagination could repeat items because cursor comparison depended on provider-specific `DateTime` behavior
+  - post deletion relied on database cascade behavior for reactions, which left orphaned likes under the in-memory integration provider
 
 ## Remaining deferred gaps
 
 The next strongest coverage wins would be:
 
 - deterministic recommended-feed tests with a stubbed recommendations client
-- dedicated repository/query tests for cursor pagination edge cases at repository level
 - persistence-focused checks for cascade behavior under a relational provider in addition to the in-memory test host
 - analytics fire-and-forget assertions via injectable fake clients instead of status-code-only controller checks
+- search persistence coverage under the current in-memory integration host, because `EF.Functions.ILike` is provider-specific and not supported there

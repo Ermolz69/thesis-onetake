@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,55 @@ namespace OneTake.Infrastructure.Repositories
         {
         }
 
+        private static (DateTime CursorDate, Guid CursorId)? ParseCursor(string? cursor)
+        {
+            if (string.IsNullOrEmpty(cursor))
+            {
+                return null;
+            }
+
+            string[] cursorParts = cursor.Split('|');
+            if (cursorParts.Length != 2 ||
+                !DateTime.TryParse(cursorParts[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime cursorDate) ||
+                !Guid.TryParse(cursorParts[1], out Guid cursorId))
+            {
+                return null;
+            }
+
+            return (cursorDate, cursorId);
+        }
+
+        private static DateTime NormalizeUtc(DateTime value)
+        {
+            return value.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+                : value.ToUniversalTime();
+        }
+
+        private static (List<Post> Posts, bool HasMore) ApplyCursorPage(List<Post> posts, (DateTime CursorDate, Guid CursorId)? cursorData, int pageSize)
+        {
+            IEnumerable<Post> filtered = posts;
+            if (cursorData.HasValue)
+            {
+                DateTime cursorDateUtc = NormalizeUtc(cursorData.Value.CursorDate);
+                filtered = filtered.Where(p =>
+                {
+                    DateTime createdAtUtc = NormalizeUtc(p.CreatedAt);
+                    return createdAtUtc < cursorDateUtc ||
+                           (createdAtUtc == cursorDateUtc && p.Id.CompareTo(cursorData.Value.CursorId) < 0);
+                });
+            }
+
+            List<Post> page = filtered.Take(pageSize + 1).ToList();
+            bool hasMore = page.Count > pageSize;
+            if (hasMore)
+            {
+                page = page.Take(pageSize).ToList();
+            }
+
+            return (page, hasMore);
+        }
+
         public async Task<Post?> GetByIdWithDetailsAsync(Guid id)
         {
             return await _dbSet
@@ -27,6 +77,7 @@ namespace OneTake.Infrastructure.Repositories
 
         public async Task<(List<Post> Posts, bool HasMore)> GetPostsWithCursorAsync(string? cursor, int pageSize)
         {
+            (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
@@ -36,34 +87,13 @@ namespace OneTake.Infrastructure.Repositories
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(cursor))
-            {
-                string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 &&
-                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
-                    Guid.TryParse(cursorParts[1], out var cursorId))
-                {
-                    query = query.Where(p =>
-                        p.CreatedAt < cursorDate ||
-                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
-                }
-            }
-
-            List<Post> posts = await query
-                .Take(pageSize + 1)
-                .ToListAsync();
-
-            bool hasMore = posts.Count > pageSize;
-            if (hasMore)
-            {
-                posts = posts.Take(pageSize).ToList();
-            }
-
-            return (posts, hasMore);
+            List<Post> posts = await query.ToListAsync();
+            return ApplyCursorPage(posts, cursorData, pageSize);
         }
 
         public async Task<(List<Post> Posts, bool HasMore)> GetByAuthorIdWithCursorAsync(Guid authorId, string? cursor, int pageSize)
         {
+            (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
@@ -73,30 +103,8 @@ namespace OneTake.Infrastructure.Repositories
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(cursor))
-            {
-                string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 &&
-                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
-                    Guid.TryParse(cursorParts[1], out var cursorId))
-                {
-                    query = query.Where(p =>
-                        p.CreatedAt < cursorDate ||
-                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
-                }
-            }
-
-            List<Post> posts = await query
-                .Take(pageSize + 1)
-                .ToListAsync();
-
-            bool hasMore = posts.Count > pageSize;
-            if (hasMore)
-            {
-                posts = posts.Take(pageSize).ToList();
-            }
-
-            return (posts, hasMore);
+            List<Post> posts = await query.ToListAsync();
+            return ApplyCursorPage(posts, cursorData, pageSize);
         }
 
         public async Task<(List<Post> Posts, bool HasMore)> GetByAuthorIdsWithCursorAsync(IEnumerable<Guid> authorIds, string? cursor, int pageSize)
@@ -107,6 +115,7 @@ namespace OneTake.Infrastructure.Repositories
                 return (new List<Post>(), false);
             }
 
+            (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
@@ -116,34 +125,13 @@ namespace OneTake.Infrastructure.Repositories
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(cursor))
-            {
-                string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 &&
-                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
-                    Guid.TryParse(cursorParts[1], out var cursorId))
-                {
-                    query = query.Where(p =>
-                        p.CreatedAt < cursorDate ||
-                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
-                }
-            }
-
-            List<Post> posts = await query
-                .Take(pageSize + 1)
-                .ToListAsync();
-
-            bool hasMore = posts.Count > pageSize;
-            if (hasMore)
-            {
-                posts = posts.Take(pageSize).ToList();
-            }
-
-            return (posts, hasMore);
+            List<Post> posts = await query.ToListAsync();
+            return ApplyCursorPage(posts, cursorData, pageSize);
         }
 
         public async Task<(List<Post> Posts, bool HasMore)> GetByTagWithCursorAsync(string tagName, string? cursor, int pageSize)
         {
+            (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
                 .Include(p => p.Author)
                 .Include(p => p.Media)
@@ -153,30 +141,8 @@ namespace OneTake.Infrastructure.Repositories
                 .ThenByDescending(p => p.Id)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(cursor))
-            {
-                string[] cursorParts = cursor.Split('|');
-                if (cursorParts.Length == 2 &&
-                    DateTime.TryParse(cursorParts[0], out var cursorDate) &&
-                    Guid.TryParse(cursorParts[1], out var cursorId))
-                {
-                    query = query.Where(p =>
-                        p.CreatedAt < cursorDate ||
-                        (p.CreatedAt == cursorDate && p.Id.CompareTo(cursorId) < 0));
-                }
-            }
-
-            List<Post> posts = await query
-                .Take(pageSize + 1)
-                .ToListAsync();
-
-            bool hasMore = posts.Count > pageSize;
-            if (hasMore)
-            {
-                posts = posts.Take(pageSize).ToList();
-            }
-
-            return (posts, hasMore);
+            List<Post> posts = await query.ToListAsync();
+            return ApplyCursorPage(posts, cursorData, pageSize);
         }
 
         public async Task<(List<Post> Posts, bool HasMore)> SearchAsync(string query, string? cursor, int pageSize)
@@ -229,4 +195,3 @@ namespace OneTake.Infrastructure.Repositories
         }
     }
 }
-
