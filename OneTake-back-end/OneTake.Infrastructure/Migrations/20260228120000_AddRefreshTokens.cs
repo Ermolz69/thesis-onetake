@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OneTake.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    [Migration("20260228120000_AddRefreshTokens")]
     public partial class AddRefreshTokens : Migration
     {
         /// <inheritdoc />

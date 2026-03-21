@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export interface VideoPlayerProps {
   src: string;
@@ -12,12 +12,64 @@ export interface VideoPlayerProps {
 
 function formatTime(sec: number): string {
   if (!Number.isFinite(sec) || sec < 0) return '0:00';
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  const totalSeconds = Math.floor(sec);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export const VideoPlayer = ({
+const buttonClass =
+  'inline-flex h-10 w-10 items-center justify-center rounded-pill border border-border-soft/70 bg-[var(--player-control-bg)] text-text-inverse transition hover:border-border-strong hover:bg-surface-card/20 focus-visible:outline-none focus-visible:[box-shadow:var(--input-ring)]';
+const COMPACT_BREAKPOINT = 520;
+const IDLE_HIDE_DELAY_MS = 1800;
+
+function PlayIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
+    </svg>
+  );
+}
+
+function VolumeIcon({ muted }: { muted: boolean }) {
+  return muted ? (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="m16.5 12 2.5 2.5-1.4 1.4-2.5-2.5-2.5 2.5-1.4-1.4 2.5-2.5-2.5-2.5 1.4-1.4 2.5 2.5 2.5-2.5 1.4 1.4zM4 9h4l5-4v14l-5-4H4z" />
+    </svg>
+  ) : (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4 9h4l5-4v14l-5-4H4zm11.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05A4.47 4.47 0 0 0 15.5 12zm-2.5-8.77v2.06a7 7 0 0 1 0 13.42v2.06C17.01 19.86 20 16.28 20 12s-2.99-7.86-7-8.77z" />
+    </svg>
+  );
+}
+
+function FullscreenIcon({ active }: { active: boolean }) {
+  return active ? (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 16H5v3h3zm0-8H5v3h3zm8 8v3h3v-3zm0-8v3h3V8z" />
+    </svg>
+  ) : (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zm-3-12v2h3v3h2V5z" />
+    </svg>
+  );
+}
+
+function VideoPlayerInner({
   src,
   poster,
   className = '',
@@ -25,84 +77,330 @@ export const VideoPlayer = ({
   onPlay,
   onTimeUpdate,
   onEnded,
-}: VideoPlayerProps) => {
+}: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [muted, setMuted] = useState(false);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [isCompact, setIsCompact] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const hideControlsTimeoutRef = useRef<number | null>(null);
 
-  const updateTime = useCallback(() => {
-    const v = videoRef.current;
-    if (v) {
-      setCurrentTime(v.currentTime);
-      if (Number.isFinite(v.duration)) setDuration(v.duration);
+  const progressValue = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const durationLabel = useMemo(() => formatTime(duration), [duration]);
+  const currentTimeLabel = useMemo(() => formatTime(currentTime), [currentTime]);
+  const showOverlay = showControls || !isPlaying || isEnded || isBuffering || isFocused;
+
+  const clearHideControlsTimer = useCallback(() => {
+    if (hideControlsTimeoutRef.current !== null) {
+      window.clearTimeout(hideControlsTimeoutRef.current);
+      hideControlsTimeoutRef.current = null;
     }
   }, []);
 
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onTimeUpdateHandler = () => {
-      updateTime();
-      onTimeUpdate?.({ currentTarget: v } as React.SyntheticEvent<HTMLVideoElement>);
-    };
-    v.addEventListener('timeupdate', onTimeUpdateHandler);
-    v.addEventListener('loadedmetadata', updateTime);
-    return () => {
-      v.removeEventListener('timeupdate', onTimeUpdateHandler);
-      v.removeEventListener('loadedmetadata', updateTime);
-    };
-  }, [onTimeUpdate, updateTime]);
+  const scheduleHideControls = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    clearHideControlsTimer();
+    hideControlsTimeoutRef.current = window.setTimeout(() => {
+      setShowControls(false);
+    }, IDLE_HIDE_DELAY_MS);
+  }, [clearHideControlsTimer]);
+
+  const revealControls = useCallback(() => {
+    setShowControls(true);
+    if (isPlaying && !isEnded && !isBuffering && !isHovering && !isFocused) {
+      scheduleHideControls();
+    } else {
+      clearHideControlsTimer();
+    }
+  }, [
+    clearHideControlsTimer,
+    isBuffering,
+    isEnded,
+    isFocused,
+    isHovering,
+    isPlaying,
+    scheduleHideControls,
+  ]);
+
+  const syncTime = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setCurrentTime(video.currentTime);
+    if (Number.isFinite(video.duration)) {
+      setDuration(video.duration);
+    }
+  }, []);
+
+  const syncVolume = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setMuted(video.muted);
+    setVolume(video.volume);
+  }, []);
+
+  const play = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        setIsEnded(false);
+        setError(null);
+        revealControls();
+        onPlay?.();
+      })
+      .catch(() => {
+        setError('Playback failed. Try interacting with the video again.');
+      });
+  }, [onPlay, revealControls]);
+
+  const pause = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.pause();
+    setIsPlaying(false);
+  }, []);
 
   const togglePlay = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      v.play()
-        .then(() => {
-          setIsPlaying(true);
-          onPlay?.();
-        })
-        .catch(() => {});
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused || video.ended) {
+      play();
     } else {
-      v.pause();
-      setIsPlaying(false);
+      pause();
     }
-  }, [onPlay]);
+  }, [pause, play]);
+
+  const toggleMuted = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    syncVolume();
+  }, [syncVolume]);
+
+  const handleVolumeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const video = videoRef.current;
+      if (!video) return;
+      const nextVolume = Number(event.target.value);
+      video.volume = nextVolume;
+      video.muted = nextVolume === 0;
+      syncVolume();
+    },
+    [syncVolume]
+  );
+
+  const handleProgressChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const video = videoRef.current;
+      if (!video || !duration) return;
+      const nextValue = Number(event.target.value);
+      const nextTime = (nextValue / 100) * duration;
+      video.currentTime = nextTime;
+      setCurrentTime(nextTime);
+      setIsEnded(false);
+    },
+    [duration]
+  );
+
+  const toggleFullscreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (document.fullscreenElement === container) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      return;
+    }
+    if (container.requestFullscreen) {
+      container.requestFullscreen().catch(() => {});
+    }
+  }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
-    setCurrentTime(0);
+    setIsEnded(true);
+    setCurrentTime(duration);
+    setShowControls(true);
     onEnded?.();
-  }, [onEnded]);
+  }, [duration, onEnded]);
 
-  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = videoRef.current;
-    if (!v) return;
-    const t = Number(e.target.value);
-    v.currentTime = t;
-    setCurrentTime(t);
-  };
+  const handleReplay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    setCurrentTime(0);
+    setIsEnded(false);
+    revealControls();
+    play();
+  }, [play, revealControls]);
 
-  const toggleMuted = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
 
-  const toggleFullscreen = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      el.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
+      if (event.key === ' ' || event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        togglePlay();
+        return;
+      }
+
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        video.currentTime = Math.min(video.duration || 0, video.currentTime + 5);
+        syncTime();
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        video.currentTime = Math.max(0, video.currentTime - 5);
+        syncTime();
+        return;
+      }
+
+      if (event.key.toLowerCase() === 'm') {
+        event.preventDefault();
+        toggleMuted();
+        return;
+      }
+
+      if (event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        toggleFullscreen();
+      }
+    },
+    [syncTime, toggleFullscreen, toggleMuted, togglePlay]
+  );
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      syncTime();
+      syncVolume();
+    };
+
+    const handleTimeUpdate = () => {
+      syncTime();
+      onTimeUpdate?.({ currentTarget: video } as React.SyntheticEvent<HTMLVideoElement>);
+    };
+
+    const handlePlaying = () => {
+      setIsPlaying(true);
+      setIsBuffering(false);
+      setIsEnded(false);
+      setError(null);
+      revealControls();
+    };
+
+    const handlePauseEvent = () => {
+      if (!video.ended) {
+        setIsPlaying(false);
+        setShowControls(true);
+      }
+    };
+
+    const handleWaiting = () => {
+      setIsBuffering(true);
+      setShowControls(true);
+    };
+    const handleCanPlay = () => {
+      setIsBuffering(false);
+      revealControls();
+    };
+    const handleError = () => {
+      setError('Unable to load this video.');
+      setShowControls(true);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('pause', handlePauseEvent);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('volumechange', syncVolume);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('error', handleError);
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('pause', handlePauseEvent);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('volumechange', syncVolume);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('error', handleError);
+    };
+  }, [handleEnded, onTimeUpdate, revealControls, syncTime, syncVolume]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setIsCompact(entry.contentRect.width <= COMPACT_BREAKPOINT);
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying || isEnded || isBuffering || isHovering || isFocused) {
+      clearHideControlsTimer();
+      return;
     }
-  };
+
+    scheduleHideControls();
+    return clearHideControlsTimer;
+  }, [
+    clearHideControlsTimer,
+    isBuffering,
+    isEnded,
+    isFocused,
+    isHovering,
+    isPlaying,
+    scheduleHideControls,
+  ]);
+
+  useEffect(() => clearHideControlsTimer, [clearHideControlsTimer]);
 
   if (!controls) {
     return (
@@ -110,7 +408,7 @@ export const VideoPlayer = ({
         ref={videoRef}
         src={src}
         poster={poster}
-        className={`w-full h-full object-contain ${className}`}
+        className={`h-full w-full object-contain ${className}`}
         playsInline
         muted
         onPlay={() => setIsPlaying(true)}
@@ -121,86 +419,147 @@ export const VideoPlayer = ({
   }
 
   return (
-    <div ref={containerRef} className={`relative bg-black rounded overflow-hidden ${className}`}>
+    <div
+      ref={containerRef}
+      className={`group relative overflow-hidden rounded-2xl border border-border-soft bg-surface-inverse text-text-inverse shadow-md ${className}`}
+      onMouseEnter={() => {
+        setIsHovering(true);
+        revealControls();
+      }}
+      onMouseLeave={() => {
+        setIsHovering(false);
+      }}
+      onMouseMove={revealControls}
+      onTouchStart={revealControls}
+      onKeyDown={handleKeyDown}
+      onFocusCapture={() => {
+        setIsFocused(true);
+        revealControls();
+      }}
+      onBlurCapture={() => {
+        setIsFocused(false);
+      }}
+      tabIndex={0}
+      role="application"
+      aria-label="Video player"
+    >
       <video
         ref={videoRef}
         src={src}
         poster={poster}
-        className="w-full h-full object-contain"
+        className="h-full w-full object-contain"
         playsInline
         muted={muted}
         onClick={togglePlay}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={handleEnded}
-        onLoadedMetadata={() => {
-          const v = videoRef.current;
-          if (v && Number.isFinite(v.duration)) setDuration(v.duration);
-        }}
       />
 
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 flex flex-col gap-1">
-        <input
-          type="range"
-          min={0}
-          max={duration || 100}
-          value={currentTime}
-          onChange={handleProgressChange}
-          className="w-full h-1.5 rounded-full appearance-none bg-white/30 cursor-pointer accent-primary"
-        />
-        <div className="flex items-center justify-between gap-2">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-overlay/20 via-transparent to-overlay/20" />
+
+      {showOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center">
           <button
             type="button"
-            onClick={togglePlay}
-            className="text-white p-1 rounded hover:bg-white/20"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            onClick={isEnded ? handleReplay : togglePlay}
+            className={`pointer-events-auto inline-flex items-center justify-center rounded-pill border border-border-soft/70 bg-surface-card/15 text-text-inverse shadow-md backdrop-blur-md transition hover:bg-surface-card/25 focus-visible:outline-none focus-visible:[box-shadow:var(--input-ring)] ${isCompact ? 'h-14 w-14' : 'h-20 w-20'}`}
+            aria-label={isEnded ? 'Replay video' : isPlaying ? 'Pause video' : 'Play video'}
           >
-            {isPlaying ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7L8 5z" />
-              </svg>
-            )}
+            {isPlaying && !isEnded ? <PauseIcon /> : <PlayIcon />}
           </button>
-          <span className="text-white text-sm tabular-nums">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </span>
-          <div className="relative">
+        </div>
+      )}
+
+      {isBuffering && (
+        <div className="absolute inset-x-0 top-4 flex justify-center">
+          <div className="rounded-pill border border-border-soft/70 bg-surface-card/15 px-3 py-1 text-xs font-medium text-text-inverse backdrop-blur-md">
+            Buffering...
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="absolute inset-x-4 top-4 rounded-xl border border-danger/40 bg-surface-card/15 px-3 py-2 text-sm text-text-inverse backdrop-blur-md">
+          {error}
+        </div>
+      )}
+
+      <div
+        className={`absolute inset-x-0 bottom-0 transition duration-200 ${isCompact ? 'p-2' : 'p-3'} ${showOverlay ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        style={{ background: 'var(--player-overlay)' }}
+      >
+        <div
+          className={`rounded-2xl border border-border-soft/70 bg-surface-card/10 backdrop-blur-xl ${isCompact ? 'space-y-2 p-2' : 'space-y-3 p-3'}`}
+        >
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={progressValue}
+            onChange={handleProgressChange}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-pill bg-surface-card/25 accent-accent"
+            aria-label="Seek video"
+          />
+
+          <div className={`flex items-center ${isCompact ? 'gap-2' : 'flex-wrap gap-3'}`}>
             <button
               type="button"
-              onClick={toggleMuted}
-              className="text-white p-1 rounded hover:bg-white/20"
-              aria-label={muted ? 'Unmute' : 'Mute'}
-              onMouseEnter={() => setShowVolumeSlider(true)}
-              onMouseLeave={() => setShowVolumeSlider(false)}
-              aria-expanded={showVolumeSlider}
+              onClick={isEnded ? handleReplay : togglePlay}
+              className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
+              aria-label={isEnded ? 'Replay video' : isPlaying ? 'Pause video' : 'Play video'}
             >
-              {muted ? (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                </svg>
-              )}
+              {isPlaying && !isEnded ? <PauseIcon /> : <PlayIcon />}
             </button>
+
+            <div className={`flex items-center ${isCompact ? 'gap-1.5' : 'gap-2'}`}>
+              <button
+                type="button"
+                onClick={toggleMuted}
+                className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
+                aria-label={muted ? 'Unmute' : 'Mute'}
+              >
+                <VolumeIcon muted={muted} />
+              </button>
+              {!isCompact && (
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={muted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="h-1.5 w-20 cursor-pointer appearance-none rounded-pill bg-surface-card/25 accent-accent"
+                  aria-label="Volume"
+                />
+              )}
+            </div>
+
+            <div
+              className={`font-medium tabular-nums text-text-inverse/90 ${isCompact ? 'min-w-0 text-xs' : 'min-w-[92px] text-sm'}`}
+            >
+              {isCompact ? currentTimeLabel : `${currentTimeLabel} / ${durationLabel}`}
+            </div>
+
+            <div className={`ml-auto flex items-center ${isCompact ? 'gap-1.5' : 'gap-2'}`}>
+              {isEnded && !isCompact && (
+                <span className="rounded-pill border border-border-soft/70 bg-surface-card/10 px-2.5 py-1 text-xs font-medium text-text-inverse/90">
+                  Ended
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className={`${buttonClass} ${isCompact ? 'h-9 w-9' : ''}`}
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              >
+                <FullscreenIcon active={isFullscreen} />
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="text-white p-1 rounded hover:bg-white/20"
-            aria-label="Fullscreen"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
   );
+}
+
+export const VideoPlayer = (props: VideoPlayerProps) => {
+  return <VideoPlayerInner key={`${props.src}::${props.poster ?? ''}`} {...props} />;
 };

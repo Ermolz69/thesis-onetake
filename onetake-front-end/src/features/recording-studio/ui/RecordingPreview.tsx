@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Button } from '@/shared/ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, VideoPlayer } from '@/shared/ui';
 import { mediaFrame } from '@/shared/ui/recipes';
 import type { RecordingState } from '@/features/recording-studio/types';
+import { createVideoThumbnail } from '@/shared/lib/video-thumbnail';
 
 export interface RecordingPreviewProps {
   state: RecordingState;
@@ -21,6 +22,7 @@ export const RecordingPreview = ({
     () => (recordedBlob && state === 'stopped' ? URL.createObjectURL(recordedBlob) : null),
     [recordedBlob, state]
   );
+  const [posterUrl, setPosterUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -40,9 +42,30 @@ export const RecordingPreview = ({
     };
   }, [objectUrl]);
 
+  useEffect(() => {
+    let active = true;
+
+    if (!recordedBlob || state !== 'stopped') {
+      return () => {
+        active = false;
+      };
+    }
+
+    createVideoThumbnail(recordedBlob).then((thumbnail) => {
+      if (active) {
+        setPosterUrl(thumbnail);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [recordedBlob, state]);
+
   const showLive = (state === 'recording' || state === 'paused') && stream;
   const showRecorded = state === 'stopped' && objectUrl;
   const showPlaceholder = !showLive && !showRecorded;
+  const displayPosterUrl = showRecorded ? posterUrl : null;
 
   return (
     <div className="space-y-2">
@@ -57,12 +80,13 @@ export const RecordingPreview = ({
           className={`w-full h-full object-contain ${showLive ? 'block' : 'hidden'}`}
           aria-hidden={!showLive}
         />
-        <video
-          src={objectUrl ?? undefined}
-          controls
-          className={`w-full h-full object-contain ${showRecorded ? 'block' : 'hidden'}`}
-          aria-hidden={!showRecorded}
-        />
+        {showRecorded && objectUrl && (
+          <VideoPlayer
+            src={objectUrl}
+            poster={displayPosterUrl ?? undefined}
+            className="h-full w-full"
+          />
+        )}
         {showPlaceholder && (
           <div className="absolute inset-0 flex items-center justify-center text-text-muted">
             Preview will appear here

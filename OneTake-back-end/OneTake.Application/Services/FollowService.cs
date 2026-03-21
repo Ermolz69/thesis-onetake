@@ -34,6 +34,32 @@ namespace OneTake.Application.Services
             _requestContext = requestContext;
         }
 
+        private static PostDto MapPostDto(Post post, int likeCount, int commentCount)
+        {
+            string authorName = post.Author?.Username ?? "Unknown";
+            string authorDisplayName = string.IsNullOrWhiteSpace(post.Author?.Profile?.FullName)
+                ? authorName
+                : post.Author!.Profile!.FullName;
+
+            return new PostDto(
+                post.Id,
+                post.ContentText,
+                post.Media?.Url ?? "",
+                post.MediaType,
+                post.Visibility,
+                authorName,
+                authorDisplayName,
+                post.Author?.Profile?.AvatarUrl,
+                post.AuthorId,
+                post.CreatedAt,
+                likeCount,
+                commentCount,
+                post.PostTags.Select(pt => pt.Tag!.Name).ToList(),
+                post.Media?.ThumbnailUrl,
+                post.Media?.DurationSec
+            );
+        }
+
         public async Task<Result> FollowAsync(Guid followerId, Guid followedId, CancellationToken cancellationToken = default)
         {
             if (followerId == followedId)
@@ -125,19 +151,7 @@ namespace OneTake.Application.Services
             {
                 int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
                 int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
-                postDtos.Add(new PostDto(
-                    post.Id,
-                    post.ContentText,
-                    post.Media?.Url ?? "",
-                    post.MediaType,
-                    post.Visibility,
-                    post.Author?.Username ?? "Unknown",
-                    post.AuthorId,
-                    post.CreatedAt,
-                    likeCount,
-                    commentCount,
-                    post.PostTags.Select(pt => pt.Tag!.Name).ToList()
-                ));
+                postDtos.Add(MapPostDto(post, likeCount, commentCount));
             }
             string? nextCursor = null;
             if (hasMore && posts.Count > 0)

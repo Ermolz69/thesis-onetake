@@ -15,11 +15,15 @@ export interface Post {
   mediaType: MediaType;
   visibility: Visibility;
   authorName: string;
+  authorDisplayName: string;
+  authorAvatarUrl?: string | null;
   authorId: string;
   createdAt: string;
   likeCount: number;
   commentCount: number;
   tags: string[];
+  thumbnailUrl?: string | null;
+  durationSec?: number | null;
 }
 
 export interface PagedPostResponse {

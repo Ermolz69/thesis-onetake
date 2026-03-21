@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Input, ErrorMessage, Badge } from '@/shared/ui';
 import { routes } from '@/shared/config';
 import type { TrimRange } from '@/features/recording-studio';
 import { useChunkUpload } from '@/features/chunk-upload/useChunkUpload';
 import { UploadProgress } from './UploadProgress';
+import { createVideoThumbnail } from '@/shared/lib/video-thumbnail';
 
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
 const MAX_FILE_SIZE_GB = 2;
@@ -23,10 +24,40 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
   const [contentText, setContentText] = useState('');
   const [tagsStr, setTagsStr] = useState('');
   const [visibility, setVisibility] = useState<number>(0);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const { status, progress, error, post, upload, reset, cancelUpload } = useChunkUpload();
   const isFileTooLarge = file.size > MAX_FILE_SIZE_BYTES;
   const isBusy = status === 'uploading' || status === 'finalizing';
+  const isVideoFile = file.type.startsWith('video/');
+  const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
+  const displayThumbnailUrl = isVideoFile ? thumbnailUrl : null;
+
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!isVideoFile) {
+      return () => {
+        active = false;
+      };
+    }
+
+    createVideoThumbnail(file).then((thumbnail) => {
+      if (active) {
+        setThumbnailUrl(thumbnail);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [file, isVideoFile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +145,35 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="overflow-hidden rounded-2xl border border-border-soft bg-surface-muted shadow-xs">
+        {displayThumbnailUrl ? (
+          <img
+            src={displayThumbnailUrl}
+            alt="Video preview thumbnail"
+            className="aspect-video w-full object-cover"
+          />
+        ) : isVideoFile ? (
+          <video src={previewUrl} muted playsInline className="aspect-video w-full object-cover" />
+        ) : (
+          <div className="flex aspect-video items-center justify-center bg-surface-elevated px-4 text-center text-sm text-text-secondary">
+            Audio upload ready for publishing
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3 border-t border-border-soft px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-text-primary">{file.name}</p>
+            <p className="text-xs text-text-secondary">
+              {displayThumbnailUrl
+                ? 'Preview uses the first available video frame.'
+                : 'Preparing media preview.'}
+            </p>
+          </div>
+          <Badge variant="soft" tone={displayThumbnailUrl ? 'success' : 'neutral'}>
+            {displayThumbnailUrl ? 'Thumbnail ready' : 'Preview'}
+          </Badge>
+        </div>
+      </div>
+
       <Input
         label="Description"
         value={contentText}
@@ -145,9 +205,7 @@ export const ChunkUploadForm = ({ file, trimRange, onBack }: ChunkUploadFormProp
 
       <UploadProgress status={status} progress={progress} />
 
-      <p className="text-sm text-text-secondary">
-        File: {file.name} ({(file.size / 1024).toFixed(1)} KB)
-      </p>
+      <p className="text-sm text-text-secondary">Size: {(file.size / 1024).toFixed(1)} KB</p>
       {isFileTooLarge && (
         <p className="text-sm text-danger">File too large (max {MAX_FILE_SIZE_GB} GB).</p>
       )}

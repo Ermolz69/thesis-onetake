@@ -44,8 +44,21 @@ namespace OneTake.UnitTests.Services
                 MediaType = MediaType.Video,
                 Visibility = Visibility.Public,
                 AuthorId = Guid.NewGuid(),
-                Author = new User { Username = "author" },
-                Media = new MediaObject { Url = "https://example.com/v.mp4" },
+                Author = new User
+                {
+                    Username = "author",
+                    Profile = new Profile
+                    {
+                        FullName = "Author Display",
+                        AvatarUrl = "https://example.com/avatar.png"
+                    }
+                },
+                Media = new MediaObject
+                {
+                    Url = "https://example.com/v.mp4",
+                    ThumbnailUrl = "https://example.com/v.jpg",
+                    DurationSec = 95.5
+                },
                 PostTags = new List<PostTag>()
             };
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -68,6 +81,10 @@ namespace OneTake.UnitTests.Services
             Assert.True(result.IsSuccess);
             Assert.Equal("Hi", result.Value!.ContentText);
             Assert.Equal("author", result.Value.AuthorName);
+            Assert.Equal("Author Display", result.Value.AuthorDisplayName);
+            Assert.Equal("https://example.com/avatar.png", result.Value.AuthorAvatarUrl);
+            Assert.Equal("https://example.com/v.jpg", result.Value.ThumbnailUrl);
+            Assert.Equal(95.5, result.Value.DurationSec);
         }
 
         [Fact]

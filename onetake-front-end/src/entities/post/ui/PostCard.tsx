@@ -41,6 +41,7 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
           post.mediaType === MediaType.Video ? (
             <VideoPlayer
               src={resolveMediaUrl(post.mediaUrl)}
+              poster={post.thumbnailUrl ? resolveMediaUrl(post.thumbnailUrl) : undefined}
               className="h-full w-full object-cover"
               controls={false}
             />
@@ -71,7 +72,7 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
                 className="font-medium text-text-primary transition hover:text-accent"
                 onClick={(e) => e.stopPropagation()}
               >
-                {post.authorName}
+                {post.authorDisplayName || post.authorName}
               </Link>
             </div>
           </div>

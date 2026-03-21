@@ -69,7 +69,7 @@ namespace OneTake.Infrastructure.Repositories
         public async Task<Post?> GetByIdWithDetailsAsync(Guid id)
         {
             return await _dbSet
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(author => author!.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -79,7 +79,7 @@ namespace OneTake.Infrastructure.Repositories
         {
             (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(author => author!.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
                 .Where(p => p.Visibility == Visibility.Public)
@@ -95,7 +95,7 @@ namespace OneTake.Infrastructure.Repositories
         {
             (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(author => author!.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
                 .Where(p => p.AuthorId == authorId && p.Visibility == Visibility.Public)
@@ -117,7 +117,7 @@ namespace OneTake.Infrastructure.Repositories
 
             (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(author => author!.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
                 .Where(p => idList.Contains(p.AuthorId) && p.Visibility == Visibility.Public)
@@ -133,7 +133,7 @@ namespace OneTake.Infrastructure.Repositories
         {
             (DateTime CursorDate, Guid CursorId)? cursorData = ParseCursor(cursor);
             IQueryable<Post> query = _dbSet
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(author => author!.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.PostTags).ThenInclude(pt => pt.Tag)
                 .Where(p => p.Visibility == Visibility.Public && p.PostTags.Any(pt => pt.Tag!.Name == tagName))

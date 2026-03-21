@@ -11,6 +11,10 @@ import { HttpError, type ProblemDetails, type ValidationProblemDetails } from '.
 
 let refreshPromise: Promise<string | null> | null = null;
 
+function isAuthRoutePath(pathname: string): boolean {
+  return pathname.startsWith('/auth');
+}
+
 async function doRefresh(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
@@ -41,8 +45,11 @@ async function doRefresh(): Promise<string | null> {
         typeof window !== 'undefined' &&
         (status === 401 || status === 403 || errorCode === 'refresh_reuse_detected')
       ) {
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `${routes.auth.login}?next=${next}`;
+        const currentPath = window.location.pathname;
+        if (!isAuthRoutePath(currentPath)) {
+          const next = encodeURIComponent(currentPath + window.location.search);
+          window.location.href = `${routes.auth.login}?next=${next}`;
+        }
       }
       return null;
     } finally {
@@ -103,7 +110,11 @@ class HttpClient {
           const isLogout = url.includes(api.endpoints.auth.logout);
           if (isRefresh || isLogout) {
             authStore.clearSession();
-            if (isRefresh && typeof window !== 'undefined') {
+            if (
+              isRefresh &&
+              typeof window !== 'undefined' &&
+              !isAuthRoutePath(window.location.pathname)
+            ) {
               window.location.href = `${routes.auth.login}?next=${encodeURIComponent(window.location.pathname)}`;
             }
             return Promise.reject(error);

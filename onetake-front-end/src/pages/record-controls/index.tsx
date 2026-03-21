@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button, ErrorMessage, Card } from '@/shared/ui';
+import { Badge, Button, ErrorMessage, Card } from '@/shared/ui';
 import { useDevices } from '@/features/recording-studio/useDevices';
 import type { RecordingMode } from '@/features/recording-studio';
 
@@ -33,13 +33,22 @@ const selectClass =
 export const RecordControlsPage = () => {
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
-  const { videoDevices, audioDevices, loading, error: devicesError } = useDevices();
+  const {
+    videoDevices,
+    audioDevices,
+    loading,
+    error: devicesError,
+    accessGranted,
+    requestAccess,
+    refresh,
+  } = useDevices();
 
   const [videoDeviceId, setVideoDeviceId] = useState<string>('');
   const [audioDeviceId, setAudioDeviceId] = useState<string>('');
   const [countdown, setCountdown] = useState<number | null>(null);
   const [remoteState, setRemoteState] = useState<string>('idle');
   const [liveDurationMs, setLiveDurationMs] = useState(0);
+  const [showDevicePicker, setShowDevicePicker] = useState(true);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const selectedVideoDeviceId = videoDeviceId || videoDevices[0]?.deviceId || '';
   const selectedAudioDeviceId = audioDeviceId || audioDevices[0]?.deviceId || '';
@@ -95,15 +104,23 @@ export const RecordControlsPage = () => {
   const handlePause = () => send({ type: 'pause' });
   const handleResume = () => send({ type: 'resume' });
   const handleStop = () => send({ type: 'stop' });
+  const handleGrantAccess = async () => {
+    await requestAccess({
+      video: mode !== 'screen',
+      audio: true,
+    });
+  };
 
   const isIdle = remoteState === 'idle' && countdown === null;
   const isCountdown = countdown !== null;
   const isRecording = remoteState === 'recording' || remoteState === 'paused';
+  const canChooseCamera = mode !== 'screen' && videoDevices.length > 0;
+  const canChooseMicrophone = audioDevices.length > 0;
 
   return (
     <div className="min-h-screen bg-surface-muted p-4 text-text-primary">
       <div className="mx-auto max-w-sm">
-        <Card radius="xl" className="space-y-4">
+        <Card radius="xl" className="space-y-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-text-primary">Recording panel</h2>
             <p className="text-sm text-text-secondary">Control the active recording session.</p>
@@ -111,38 +128,99 @@ export const RecordControlsPage = () => {
 
           {devicesError && <ErrorMessage message={devicesError} className="mb-2" />}
 
-          {mode !== 'screen' && (
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-text-secondary">Camera</label>
-              <select
-                value={selectedVideoDeviceId}
-                onChange={(e) => setVideoDeviceId(e.target.value)}
-                disabled={!isIdle || loading}
-                className={selectClass}
-              >
-                {videoDevices.map((d) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
+          <div className="rounded-2xl border border-border-soft bg-surface-muted/70 p-3 shadow-xs">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-text-primary">Input setup</p>
+                <p className="text-xs text-text-secondary">
+                  Pick the camera and microphone before the countdown starts.
+                </p>
+              </div>
+              <Badge variant="soft" tone={accessGranted ? 'success' : 'neutral'}>
+                {accessGranted ? 'Ready' : 'Access needed'}
+              </Badge>
             </div>
-          )}
 
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-text-secondary">Microphone</label>
-            <select
-              value={selectedAudioDeviceId}
-              onChange={(e) => setAudioDeviceId(e.target.value)}
-              disabled={!isIdle || loading}
-              className={selectClass}
-            >
-              {audioDevices.map((d) => (
-                <option key={d.deviceId} value={d.deviceId}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="soft"
+                tone="accent"
+                size="sm"
+                onClick={handleGrantAccess}
+                disabled={!isIdle || loading}
+              >
+                {accessGranted ? 'Reconnect devices' : 'Grant access'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                onClick={() => refresh()}
+                disabled={!isIdle || loading}
+              >
+                Refresh list
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                onClick={() => setShowDevicePicker((value) => !value)}
+                disabled={!isIdle}
+              >
+                {showDevicePicker ? 'Hide inputs' : 'Choose microphone'}
+              </Button>
+            </div>
+
+            {showDevicePicker && (
+              <div className="mt-4 space-y-3">
+                {mode !== 'screen' && (
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-text-secondary">Camera</label>
+                    <select
+                      value={selectedVideoDeviceId}
+                      onChange={(e) => setVideoDeviceId(e.target.value)}
+                      disabled={!isIdle || loading || !canChooseCamera}
+                      className={selectClass}
+                    >
+                      {canChooseCamera ? (
+                        videoDevices.map((device) => (
+                          <option key={device.deviceId} value={device.deviceId}>
+                            {device.label}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">No cameras detected yet</option>
+                      )}
+                    </select>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-text-secondary">
+                    Microphone
+                  </label>
+                  <select
+                    value={selectedAudioDeviceId}
+                    onChange={(e) => setAudioDeviceId(e.target.value)}
+                    disabled={!isIdle || loading || !canChooseMicrophone}
+                    className={selectClass}
+                  >
+                    {canChooseMicrophone ? (
+                      audioDevices.map((device) => (
+                        <option key={device.deviceId} value={device.deviceId}>
+                          {device.label}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No microphones detected yet</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -150,7 +228,12 @@ export const RecordControlsPage = () => {
               <p className="text-center text-3xl font-semibold text-text-primary">{countdown}</p>
             )}
             {isIdle && !isCountdown && (
-              <Button variant="solid" tone="accent" onClick={handleStart} disabled={loading}>
+              <Button
+                variant="solid"
+                tone="accent"
+                onClick={handleStart}
+                disabled={loading || !accessGranted || !canChooseMicrophone}
+              >
                 Start (3...2...1)
               </Button>
             )}

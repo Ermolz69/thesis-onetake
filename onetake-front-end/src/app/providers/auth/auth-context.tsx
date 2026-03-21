@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { AuthUser } from '@/shared/lib/auth-store';
+import type { AuthSnapshot, AuthUser } from '@/shared/lib/auth-store';
 import { authStore } from '@/shared/lib/auth-store';
 
 export interface AuthState {
@@ -22,20 +22,11 @@ const initialState: AuthState = {
   restoreAttempted: false,
 };
 
-interface AuthStateWithRestore extends AuthState {
-  restoreAttempted: boolean;
+export function getSnapshot(): AuthSnapshot {
+  return authStore.getSnapshot();
 }
 
-export function getSnapshot(): AuthStateWithRestore {
-  return {
-    accessToken: authStore.getAccessToken(),
-    user: authStore.getUser(),
-    hasAuth: !!(authStore.getAccessToken() && authStore.getUser()),
-    restoreAttempted: authStore.getRestoreAttempted(),
-  };
-}
-
-export function getServerSnapshot(): AuthStateWithRestore {
+export function getServerSnapshot(): AuthSnapshot {
   return { ...initialState, restoreAttempted: false };
 }
 

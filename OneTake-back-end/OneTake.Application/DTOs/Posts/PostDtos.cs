@@ -12,11 +12,15 @@ namespace OneTake.Application.DTOs.Posts
         MediaType MediaType,
         Visibility Visibility,
         string AuthorName,
+        string AuthorDisplayName,
+        string? AuthorAvatarUrl,
         Guid AuthorId,
         DateTime CreatedAt,
         int LikeCount,
         int CommentCount,
-        List<string> Tags
+        List<string> Tags,
+        string? ThumbnailUrl,
+        double? DurationSec
     );
 
     public record CreatePostRequest(
@@ -25,4 +29,3 @@ namespace OneTake.Application.DTOs.Posts
         Visibility? Visibility = null
     );
 }
-

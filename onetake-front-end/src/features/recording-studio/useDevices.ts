@@ -11,12 +11,15 @@ export function useDevices(): {
   audioDevices: MediaDeviceInfo[];
   loading: boolean;
   error: string | null;
+  accessGranted: boolean;
   refresh: () => Promise<void>;
+  requestAccess: (constraints?: { video?: boolean; audio?: boolean }) => Promise<void>;
 } {
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessGranted, setAccessGranted] = useState(false);
 
   const load = async () => {
     if (!navigator.mediaDevices?.enumerateDevices) {
@@ -46,6 +49,7 @@ export function useDevices(): {
             kind: d.kind as 'audioinput',
           }))
       );
+      setAccessGranted(devices.some((device) => Boolean(device.label)));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to list devices');
     } finally {
@@ -53,9 +57,46 @@ export function useDevices(): {
     }
   };
 
+  const requestAccess = async (constraints?: { video?: boolean; audio?: boolean }) => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('Media devices not supported');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: constraints?.video ?? true,
+        audio: constraints?.audio ?? true,
+      });
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setAccessGranted(true);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to request device access');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     load();
+    const handleDeviceChange = () => {
+      load().catch(() => {});
+    };
+    navigator.mediaDevices?.addEventListener?.('devicechange', handleDeviceChange);
+    return () => {
+      navigator.mediaDevices?.removeEventListener?.('devicechange', handleDeviceChange);
+    };
   }, []);
 
-  return { videoDevices, audioDevices, loading, error, refresh: load };
+  return {
+    videoDevices,
+    audioDevices,
+    loading,
+    error,
+    accessGranted,
+    refresh: load,
+    requestAccess,
+  };
 }

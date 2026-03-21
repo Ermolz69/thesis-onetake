@@ -4,12 +4,34 @@ export interface AuthUser {
   email: string;
 }
 
+export interface AuthSnapshot {
+  accessToken: string | null;
+  user: AuthUser | null;
+  hasAuth: boolean;
+  restoreAttempted: boolean;
+}
+
 type Listener = () => void;
 
 let accessToken: string | null = null;
 let user: AuthUser | null = null;
 let restoreAttempted = false;
 const listeners = new Set<Listener>();
+let snapshot: AuthSnapshot = {
+  accessToken,
+  user,
+  hasAuth: false,
+  restoreAttempted,
+};
+
+function updateSnapshot() {
+  snapshot = {
+    accessToken,
+    user,
+    hasAuth: !!(accessToken && user),
+    restoreAttempted,
+  };
+}
 
 function emit() {
   listeners.forEach((l) => l());
@@ -28,20 +50,27 @@ export const authStore = {
     return restoreAttempted;
   },
 
+  getSnapshot(): AuthSnapshot {
+    return snapshot;
+  },
+
   setRestoreAttempted(): void {
     restoreAttempted = true;
+    updateSnapshot();
     emit();
   },
 
   setSession(token: string, userData: AuthUser): void {
     accessToken = token;
     user = userData;
+    updateSnapshot();
     emit();
   },
 
   clearSession(): void {
     accessToken = null;
     user = null;
+    updateSnapshot();
     emit();
   },
 

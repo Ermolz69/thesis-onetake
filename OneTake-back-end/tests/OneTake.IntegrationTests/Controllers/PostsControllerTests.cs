@@ -98,13 +98,32 @@ namespace OneTake.IntegrationTests.Controllers
                     Role = UserRole.Author
                 };
                 db.Users.Add(user);
-                db.Profiles.Add(new Profile { Id = Guid.NewGuid(), UserId = user.Id, FullName = "GetById Author" });
+                db.Profiles.Add(new Profile
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    FullName = "GetById Author",
+                    AvatarUrl = "https://example.com/avatar.png"
+                });
+                var media = new MediaObject
+                {
+                    Id = Guid.NewGuid(),
+                    Url = "https://example.com/video.mp4",
+                    Path = "media/video.mp4",
+                    MediaType = MediaType.Video,
+                    FileSize = 1024,
+                    DurationSec = 87.2,
+                    ThumbnailUrl = "https://example.com/thumb.jpg"
+                };
+                db.MediaObjects.Add(media);
                 postId = Guid.NewGuid();
                 db.Posts.Add(new Post
                 {
                     Id = postId,
                     AuthorId = user.Id,
                     ContentText = "Seeded post",
+                    MediaId = media.Id,
+                    Media = media,
                     MediaType = MediaType.Video,
                     Visibility = Visibility.Public
                 });
@@ -120,6 +139,16 @@ namespace OneTake.IntegrationTests.Controllers
                 JsonElement root = doc.RootElement;
                 Assert.True(root.TryGetProperty("id", out var idEl) || root.TryGetProperty("Id", out idEl));
                 Assert.Equal(postId.ToString(), idEl.GetString());
+                Assert.Equal(
+                    "GetById Author",
+                    TestApiHelper.GetString(root, "authorDisplayName", "AuthorDisplayName"));
+                Assert.Equal(
+                    "https://example.com/avatar.png",
+                    TestApiHelper.GetString(root, "authorAvatarUrl", "AuthorAvatarUrl"));
+                Assert.Equal(
+                    "https://example.com/thumb.jpg",
+                    TestApiHelper.GetString(root, "thumbnailUrl", "ThumbnailUrl"));
+                Assert.Equal(87.2, TestApiHelper.GetProperty(root, "durationSec", "DurationSec").GetDouble());
             }
         }
 

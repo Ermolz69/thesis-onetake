@@ -6,11 +6,19 @@ import { Loader, ErrorMessage } from '@/shared/ui';
 export interface RecommendedFeedProps {
   limit?: number;
   title?: string;
+  excludePostId?: string;
+  className?: string;
+  titleClassName?: string;
+  gridClassName?: string;
 }
 
 export const RecommendedFeed = ({
   limit = 10,
   title = 'Recommended for you',
+  excludePostId,
+  className = 'space-y-4 py-8',
+  titleClassName = 'text-2xl font-semibold text-text-primary',
+  gridClassName = 'grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3',
 }: RecommendedFeedProps) => {
   const [posts, setPosts] = useState<Awaited<ReturnType<typeof postApi.getRecommended>>>([]);
   const [loading, setLoading] = useState(true);
@@ -34,16 +42,18 @@ export const RecommendedFeed = ({
     };
   }, [limit]);
 
+  const visiblePosts = excludePostId ? posts.filter((post) => post.id !== excludePostId) : posts;
+
   return (
-    <section className="space-y-4 py-8">
-      <h2 className="text-2xl font-semibold text-text-primary">{title}</h2>
+    <section className={className}>
+      <h2 className={titleClassName}>{title}</h2>
       {loading ? (
         <Loader size="lg" />
       ) : error ? (
         <ErrorMessage message={error} />
-      ) : posts?.length ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {posts.map((post) => (
+      ) : visiblePosts.length ? (
+        <div className={gridClassName}>
+          {visiblePosts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>
