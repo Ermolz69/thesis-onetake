@@ -149,7 +149,59 @@ namespace OneTake.IntegrationTests.Controllers
                     "https://example.com/thumb.jpg",
                     TestApiHelper.GetString(root, "thumbnailUrl", "ThumbnailUrl"));
                 Assert.Equal(87.2, TestApiHelper.GetProperty(root, "durationSec", "DurationSec").GetDouble());
+                Assert.False(TestApiHelper.GetBool(root, "isLikedByCurrentUser", "IsLikedByCurrentUser"));
             }
+        }
+
+        [Fact]
+        public async Task GetPostById_ReturnsCurrentUsersLikeState_WhenAuthorizedUserAlreadyLiked()
+        {
+            (string accessToken, Guid userId, _, _) = await TestApiHelper.RegisterUserAsync(_client, "liked_viewer");
+            TestApiHelper.SetBearerToken(_client, accessToken);
+
+            Guid postId;
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                string unique = Guid.NewGuid().ToString("N")[..8];
+                var author = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = $"liked_author_{unique}",
+                    Email = $"liked_author_{unique}@example.com",
+                    PasswordHash = "hash",
+                    Role = UserRole.Author
+                };
+
+                db.Users.Add(author);
+                db.Profiles.Add(new Profile { Id = Guid.NewGuid(), UserId = author.Id, FullName = "Liked Author" });
+
+                postId = Guid.NewGuid();
+                db.Posts.Add(new Post
+                {
+                    Id = postId,
+                    AuthorId = author.Id,
+                    ContentText = "Liked post",
+                    MediaType = MediaType.Video,
+                    Visibility = Visibility.Public
+                });
+
+                db.Reactions.Add(new Reaction
+                {
+                    Id = Guid.NewGuid(),
+                    PostId = postId,
+                    UserId = userId,
+                    Type = ReactionType.Like
+                });
+
+                await db.SaveChangesAsync();
+            }
+
+            HttpResponseMessage response = await _client.GetAsync($"/api/posts/{postId}");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using JsonDocument doc = await TestApiHelper.ReadJsonAsync(response);
+            Assert.True(TestApiHelper.GetBool(doc.RootElement, "isLikedByCurrentUser", "IsLikedByCurrentUser"));
         }
 
         [Fact]

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { routes } from '@/shared/config';
 import { Button, MoonIcon, SunIcon, BellIcon, Badge } from '@/shared/ui';
 import { useTheme } from '@/app/providers/theme';
+import { useI18n } from '@/app/providers/i18n';
 import { notificationApi } from '@/entities/notification';
 import { AuthContext } from '@/app/providers/auth';
 import { api } from '@/shared/config';
@@ -17,6 +18,7 @@ export const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
   const [unreadCount, setUnreadCount] = useState(0);
   const hasAuth = auth?.hasAuth ?? false;
   const user = auth?.user ?? null;
@@ -60,19 +62,31 @@ export const Layout = ({ children }: LayoutProps) => {
             <nav className="flex flex-wrap items-center gap-2">
               <Link to={routes.posts}>
                 <Button variant="ghost" tone="neutral" size="sm">
-                  Posts
+                  {t('nav.posts')}
                 </Button>
               </Link>
               {hasAuth && (
                 <Link to={routes.record}>
                   <Button variant="ghost" tone="neutral" size="sm">
-                    Create post
+                    {t('nav.createPost')}
                   </Button>
                 </Link>
               )}
+              <Link to={routes.settings}>
+                <Button variant="ghost" tone="neutral" size="sm">
+                  {t('nav.settings')}
+                </Button>
+              </Link>
               {hasAuth && (
                 <Link to={routes.notifications} className="relative">
-                  <Button variant="ghost" tone="neutral" size="sm" radius="pill">
+                  <Button
+                    variant="ghost"
+                    tone="neutral"
+                    size="sm"
+                    radius="pill"
+                    aria-label={t('nav.notifications')}
+                    title={t('nav.notifications')}
+                  >
                     <BellIcon className="h-5 w-5" />
                   </Button>
                   {unreadCount > 0 && (
@@ -89,18 +103,18 @@ export const Layout = ({ children }: LayoutProps) => {
                   {user?.id && (
                     <Link to={routes.profile(user.id)}>
                       <Button variant="ghost" tone="neutral" size="sm">
-                        {user.username ?? 'Profile'}
+                        {user.username ?? t('nav.profile')}
                       </Button>
                     </Link>
                   )}
                   <Button variant="outline" tone="neutral" size="sm" onClick={handleSignOut}>
-                    Sign out
+                    {t('nav.signOut')}
                   </Button>
                 </>
               ) : (
                 <Link to={routes.auth.login}>
                   <Button variant="outline" tone="neutral" size="sm">
-                    Sign in
+                    {t('nav.signIn')}
                   </Button>
                 </Link>
               )}

@@ -2,6 +2,7 @@ import { Badge, Button, Card, CommentIcon, HeartIcon, VideoPlayer } from '@/shar
 import { actionRow, mediaCardBody, mediaFrame, metaRow } from '@/shared/ui/recipes';
 import { routes, resolveMediaUrl } from '@/shared/config';
 import { useNavigate, Link } from 'react-router-dom';
+import { useI18n } from '@/app/providers/i18n';
 import type { Post } from '@/entities/post/types';
 import { MediaType } from '@/entities/post/types';
 
@@ -14,6 +15,8 @@ export interface PostCardProps {
 
 export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => {
   const navigate = useNavigate();
+  const { t } = useI18n();
+  const liked = isLiked ?? post.isLikedByCurrentUser;
 
   const handleClick = () => {
     navigate(routes.postDetails(post.id));
@@ -21,9 +24,9 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isLiked && onUnlike) {
+    if (liked && onUnlike) {
       onUnlike(post.id);
-    } else if (!isLiked && onLike) {
+    } else if (!liked && onLike) {
       onLike(post.id);
     }
   };
@@ -54,7 +57,7 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
           )
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-text-secondary">
-            No media
+            {t('postCard.noMedia')}
           </div>
         )}
       </div>
@@ -63,10 +66,10 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="line-clamp-2 text-lg font-semibold text-text-primary">
-              {post.contentText || 'Untitled'}
+              {post.contentText || t('postCard.untitled')}
             </h3>
             <div className={metaRow}>
-              <span>by</span>
+              <span>{t('postCard.by')}</span>
               <Link
                 to={routes.profile(post.authorId)}
                 className="font-medium text-text-primary transition hover:text-accent"
@@ -81,7 +84,7 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
             tone={post.mediaType === MediaType.Video ? 'accent' : 'neutral'}
             size="sm"
           >
-            {post.mediaType === MediaType.Video ? 'Video' : 'Audio'}
+            {post.mediaType === MediaType.Video ? t('common.video') : t('common.audio')}
           </Badge>
         </div>
 
@@ -98,8 +101,8 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
         <div className={actionRow}>
           <div className="flex items-center gap-4 text-sm text-text-secondary">
             <span className="flex items-center gap-1">
-              <span className={isLiked ? 'text-danger' : 'text-text-secondary'}>
-                <HeartIcon className="h-4 w-4" color="currentColor" filled={isLiked} />
+              <span className={liked ? 'text-danger' : 'text-text-secondary'}>
+                <HeartIcon className="h-4 w-4" color="currentColor" filled={liked} />
               </span>
               {post.likeCount}
             </span>
@@ -109,12 +112,12 @@ export const PostCard = ({ post, onLike, onUnlike, isLiked }: PostCardProps) => 
             </span>
           </div>
           <Button
-            variant={isLiked ? 'soft' : 'outline'}
-            tone={isLiked ? 'danger' : 'neutral'}
+            variant={liked ? 'soft' : 'outline'}
+            tone={liked ? 'danger' : 'neutral'}
             size="sm"
             onClick={handleLikeClick}
           >
-            {isLiked ? 'Unlike' : 'Like'}
+            {liked ? t('postCard.unlike') : t('postCard.like')}
           </Button>
         </div>
       </div>

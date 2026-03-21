@@ -16,9 +16,9 @@ namespace OneTake.Application.Services
     public interface IPostService
     {
         Task<Result<PostDto>> CreatePostAsync(Guid userId, CreatePostRequest request, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
-        Task<Result<PostDto>> GetPostByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, CancellationToken cancellationToken = default);
-        Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, CancellationToken cancellationToken = default);
+        Task<Result<PostDto>> GetPostByIdAsync(Guid id, Guid? currentUserId = null, CancellationToken cancellationToken = default);
+        Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, Guid? currentUserId = null, CancellationToken cancellationToken = default);
+        Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, Guid? currentUserId = null, CancellationToken cancellationToken = default);
         Task<Result> DeletePostAsync(Guid id, Guid userId, bool canDelete, CancellationToken cancellationToken = default);
         Task<Result> LikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default);
         Task<Result> UnlikePostAsync(Guid postId, Guid userId, CancellationToken cancellationToken = default);
@@ -37,7 +37,7 @@ namespace OneTake.Application.Services
             _notificationService = notificationService;
         }
 
-        private static PostDto MapPostDto(Post post, int likeCount, int commentCount)
+        private static PostDto MapPostDto(Post post, int likeCount, bool isLikedByCurrentUser, int commentCount)
         {
             string authorName = post.Author?.Username ?? "Unknown";
             string authorDisplayName = string.IsNullOrWhiteSpace(post.Author?.Profile?.FullName)
@@ -56,6 +56,7 @@ namespace OneTake.Application.Services
                 post.AuthorId,
                 post.CreatedAt,
                 likeCount,
+                isLikedByCurrentUser,
                 commentCount,
                 post.PostTags.Select(pt => pt.Tag!.Name).ToList(),
                 post.Media?.ThumbnailUrl,
@@ -93,11 +94,11 @@ namespace OneTake.Application.Services
             await _unitOfWork.Posts.AddAsync(post);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            Result<PostDto> result = await GetPostByIdAsync(post.Id, cancellationToken);
+            Result<PostDto> result = await GetPostByIdAsync(post.Id, userId, cancellationToken);
             return result;
         }
 
-        public async Task<Result<PostDto>> GetPostByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Result<PostDto>> GetPostByIdAsync(Guid id, Guid? currentUserId = null, CancellationToken cancellationToken = default)
         {
             Post? post = await _unitOfWork.Posts.GetByIdWithDetailsAsync(id);
 
@@ -107,12 +108,14 @@ namespace OneTake.Application.Services
             }
 
             int likes = await _unitOfWork.Reactions.CountByPostAndTypeAsync(id, ReactionType.Like);
+            bool isLikedByCurrentUser = currentUserId.HasValue
+                && await _unitOfWork.Reactions.ExistsByPostAndUserAsync(id, currentUserId.Value, ReactionType.Like);
             int comments = await _unitOfWork.Comments.CountByPostIdAsync(id);
 
-            return Result<PostDto>.Success(MapPostDto(post, likes, comments));
+            return Result<PostDto>.Success(MapPostDto(post, likes, isLikedByCurrentUser, comments));
         }
 
-        public async Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, CancellationToken cancellationToken = default)
+        public async Task<Result<PagedPostResponse>> GetPostsAsync(string? tag, Guid? authorId, string? cursor, int pageSize, Guid? currentUserId = null, CancellationToken cancellationToken = default)
         {
             List<Post> posts;
             bool hasMore;
@@ -145,9 +148,11 @@ namespace OneTake.Application.Services
             foreach (Post post in posts)
             {
                 int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
+                bool isLikedByCurrentUser = currentUserId.HasValue
+                    && await _unitOfWork.Reactions.ExistsByPostAndUserAsync(post.Id, currentUserId.Value, ReactionType.Like);
                 int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
 
-                postDtos.Add(MapPostDto(post, likeCount, commentCount));
+                postDtos.Add(MapPostDto(post, likeCount, isLikedByCurrentUser, commentCount));
             }
 
             string? nextCursor = null;
@@ -160,15 +165,17 @@ namespace OneTake.Application.Services
             return Result<PagedPostResponse>.Success(new PagedPostResponse(postDtos, nextCursor, hasMore));
         }
 
-        public async Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, CancellationToken cancellationToken = default)
+        public async Task<Result<PagedPostResponse>> SearchPostsAsync(string query, string? cursor, int pageSize, Guid? currentUserId = null, CancellationToken cancellationToken = default)
         {
             (List<Post> posts, bool hasMore) = await _unitOfWork.Posts.SearchAsync(query, cursor, pageSize);
             List<PostDto> postDtos = new List<PostDto>();
             foreach (Post post in posts)
             {
                 int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
+                bool isLikedByCurrentUser = currentUserId.HasValue
+                    && await _unitOfWork.Reactions.ExistsByPostAndUserAsync(post.Id, currentUserId.Value, ReactionType.Like);
                 int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
-                postDtos.Add(MapPostDto(post, likeCount, commentCount));
+                postDtos.Add(MapPostDto(post, likeCount, isLikedByCurrentUser, commentCount));
             }
             string? nextCursor = null;
             if (hasMore && posts.Count > 0)

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { routes } from '@/shared/config';
+import { useI18n } from '@/app/providers/i18n';
 import { authCard, authPageShell, authSubtitle, authTitle } from '@/pages/auth/styles';
 
 export const NotFoundPage = () => {
+  const { t } = useI18n();
   return (
     <div className={authPageShell}>
       <div className={`${authCard} text-center`}>
@@ -47,14 +49,12 @@ export const NotFoundPage = () => {
           />
         </svg>
         <h1 className={authTitle}>404</h1>
-        <p className={`${authSubtitle} mb-6`}>
-          This page wandered off. Maybe it&apos;s recording somewhere else.
-        </p>
+        <p className={`${authSubtitle} mb-6`}>{t('notFound.body')}</p>
         <Link
           to={routes.home}
           className="inline-flex h-button-md items-center justify-center rounded-xl bg-accent px-5 font-semibold text-accent-foreground shadow-sm transition hover:bg-accent-hover"
         >
-          Go home
+          {t('notFound.goHome')}
         </Link>
       </div>
     </div>

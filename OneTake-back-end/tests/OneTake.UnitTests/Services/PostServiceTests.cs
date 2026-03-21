@@ -85,6 +85,50 @@ namespace OneTake.UnitTests.Services
             Assert.Equal("https://example.com/avatar.png", result.Value.AuthorAvatarUrl);
             Assert.Equal("https://example.com/v.jpg", result.Value.ThumbnailUrl);
             Assert.Equal(95.5, result.Value.DurationSec);
+            Assert.False(result.Value.IsLikedByCurrentUser);
+        }
+
+        [Fact]
+        public async Task GetPostByIdAsync_ReturnsLikeState_ForCurrentUser()
+        {
+            Guid currentUserId = Guid.NewGuid();
+            Post post = new Post
+            {
+                Id = Guid.NewGuid(),
+                ContentText = "Hi",
+                MediaType = MediaType.Video,
+                Visibility = Visibility.Public,
+                AuthorId = Guid.NewGuid(),
+                Author = new User { Username = "author" },
+                PostTags = new List<PostTag>()
+            };
+
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            Mock<IPostRepository> postsMock = new Mock<IPostRepository>();
+            postsMock.Setup(r => r.GetByIdWithDetailsAsync(post.Id)).ReturnsAsync(post);
+            unitOfWorkMock.Setup(u => u.Posts).Returns(postsMock.Object);
+
+            Mock<IReactionRepository> reactionsMock = new Mock<IReactionRepository>();
+            reactionsMock.Setup(r => r.CountByPostAndTypeAsync(post.Id, ReactionType.Like)).ReturnsAsync(4);
+            reactionsMock
+                .Setup(r => r.ExistsByPostAndUserAsync(post.Id, currentUserId, ReactionType.Like))
+                .ReturnsAsync(true);
+            unitOfWorkMock.Setup(u => u.Reactions).Returns(reactionsMock.Object);
+
+            Mock<ICommentRepository> commentsMock = new Mock<ICommentRepository>();
+            commentsMock.Setup(c => c.CountByPostIdAsync(post.Id)).ReturnsAsync(2);
+            unitOfWorkMock.Setup(u => u.Comments).Returns(commentsMock.Object);
+
+            Mock<IFileStorage> fileStorageMock = new Mock<IFileStorage>();
+            Mock<INotificationService> notificationMock = new Mock<INotificationService>();
+            IPostService service = new PostService(unitOfWorkMock.Object, fileStorageMock.Object, notificationMock.Object);
+
+            Result<PostDto> result = await service.GetPostByIdAsync(post.Id, currentUserId);
+
+            Assert.True(result.IsSuccess);
+            Assert.True(result.Value!.IsLikedByCurrentUser);
+            Assert.Equal(4, result.Value.LikeCount);
+            Assert.Equal(2, result.Value.CommentCount);
         }
 
         [Fact]

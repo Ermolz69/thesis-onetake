@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { postApi } from '@/entities/post';
 import { PostCard } from '@/entities/post';
+import { useI18n } from '@/app/providers/i18n';
 import { Loader, ErrorMessage } from '@/shared/ui';
 
 export interface RecommendedFeedProps {
@@ -20,6 +21,7 @@ export const RecommendedFeed = ({
   titleClassName = 'text-2xl font-semibold text-text-primary',
   gridClassName = 'grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3',
 }: RecommendedFeedProps) => {
+  const { t } = useI18n();
   const [posts, setPosts] = useState<Awaited<ReturnType<typeof postApi.getRecommended>>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export const RecommendedFeed = ({
         if (!cancelled) setPosts(data);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load');
+        if (!cancelled) setError(e instanceof Error ? e.message : t('recommended.loadFailed'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -40,13 +42,15 @@ export const RecommendedFeed = ({
     return () => {
       cancelled = true;
     };
-  }, [limit]);
+  }, [limit, t]);
 
   const visiblePosts = excludePostId ? posts.filter((post) => post.id !== excludePostId) : posts;
 
+  const resolvedTitle = title === 'Recommended for you' ? t('posts.recommendedForYou') : title;
+
   return (
     <section className={className}>
-      <h2 className={titleClassName}>{title}</h2>
+      <h2 className={titleClassName}>{resolvedTitle}</h2>
       {loading ? (
         <Loader size="lg" />
       ) : error ? (

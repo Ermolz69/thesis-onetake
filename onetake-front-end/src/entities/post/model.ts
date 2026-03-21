@@ -64,10 +64,24 @@ export const usePostStore = create<PostState>((set, get) => ({
     try {
       await postApi.likePost(id);
       set((state) => ({
-        posts: state.posts.map((p) => (p.id === id ? { ...p, likeCount: p.likeCount + 1 } : p)),
+        posts: state.posts.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                likeCount: p.isLikedByCurrentUser ? p.likeCount : p.likeCount + 1,
+                isLikedByCurrentUser: true,
+              }
+            : p
+        ),
         currentPost:
           state.currentPost?.id === id
-            ? { ...state.currentPost, likeCount: state.currentPost.likeCount + 1 }
+            ? {
+                ...state.currentPost,
+                likeCount: state.currentPost.isLikedByCurrentUser
+                  ? state.currentPost.likeCount
+                  : state.currentPost.likeCount + 1,
+                isLikedByCurrentUser: true,
+              }
             : state.currentPost,
       }));
     } catch (error) {
@@ -80,11 +94,23 @@ export const usePostStore = create<PostState>((set, get) => ({
       await postApi.unlikePost(id);
       set((state) => ({
         posts: state.posts.map((p) =>
-          p.id === id ? { ...p, likeCount: Math.max(0, p.likeCount - 1) } : p
+          p.id === id
+            ? {
+                ...p,
+                likeCount: p.isLikedByCurrentUser ? Math.max(0, p.likeCount - 1) : p.likeCount,
+                isLikedByCurrentUser: false,
+              }
+            : p
         ),
         currentPost:
           state.currentPost?.id === id
-            ? { ...state.currentPost, likeCount: Math.max(0, state.currentPost.likeCount - 1) }
+            ? {
+                ...state.currentPost,
+                likeCount: state.currentPost.isLikedByCurrentUser
+                  ? Math.max(0, state.currentPost.likeCount - 1)
+                  : state.currentPost.likeCount,
+                isLikedByCurrentUser: false,
+              }
             : state.currentPost,
       }));
     } catch (error) {

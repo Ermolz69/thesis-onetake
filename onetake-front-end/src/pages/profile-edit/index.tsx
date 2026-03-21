@@ -1,5 +1,6 @@
 import { useEffect, useState, FormEvent, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '@/app/providers/i18n';
 import { userApi, type Profile, type UpdateProfileRequest } from '@/entities/user';
 import { Button, Card, Input, Loader } from '@/shared/ui';
 import { routes } from '@/shared/config';
@@ -13,6 +14,7 @@ export const ProfileEditPage = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { t } = useI18n();
   const [form, setForm] = useState<UpdateProfileRequest>({
     fullName: '',
     bio: null,
@@ -63,38 +65,38 @@ export const ProfileEditPage = () => {
     <div className={contentShell}>
       <div className={`${contentContainer} max-w-2xl space-y-6 py-8`}>
         <Button variant="ghost" tone="neutral" onClick={() => navigate(-1)}>
-          Back
+          {t('common.back')}
         </Button>
         <Card radius="xl" className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-text-primary">Edit profile</h1>
-            <p className="text-text-secondary">Update your public identity and profile details.</p>
+            <h1 className="text-2xl font-semibold text-text-primary">{t('profileEdit.title')}</h1>
+            <p className="text-text-secondary">{t('profileEdit.subtitle')}</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Full name"
+              label={t('profileEdit.fullName')}
               value={form.fullName}
               onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
-              placeholder="Full name"
+              placeholder={t('profileEdit.fullNamePlaceholder')}
               variant="filled"
             />
             <Input
-              label="Bio"
+              label={t('profileEdit.bio')}
               value={form.bio ?? ''}
               onChange={(e) => setForm((prev) => ({ ...prev, bio: e.target.value || null }))}
-              placeholder="Bio"
+              placeholder={t('profileEdit.bioPlaceholder')}
               variant="filled"
             />
             <Input
-              label="Avatar URL"
+              label={t('profileEdit.avatarUrl')}
               value={form.avatarUrl ?? ''}
               onChange={(e) => setForm((prev) => ({ ...prev, avatarUrl: e.target.value || null }))}
-              placeholder="https://..."
+              placeholder={t('profileEdit.avatarPlaceholder')}
               variant="filled"
             />
             <div className="flex flex-wrap gap-2 pt-2">
               <Button type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? t('profileEdit.saving') : t('common.save')}
               </Button>
               <Button
                 type="button"
@@ -102,7 +104,7 @@ export const ProfileEditPage = () => {
                 tone="neutral"
                 onClick={() => navigate(profile ? routes.profile(profile.userId) : routes.posts)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>

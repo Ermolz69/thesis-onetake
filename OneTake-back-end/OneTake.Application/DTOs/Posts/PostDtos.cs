@@ -17,6 +17,7 @@ namespace OneTake.Application.DTOs.Posts
         Guid AuthorId,
         DateTime CreatedAt,
         int LikeCount,
+        bool IsLikedByCurrentUser,
         int CommentCount,
         List<string> Tags,
         string? ThumbnailUrl,

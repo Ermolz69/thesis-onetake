@@ -32,6 +32,9 @@ const ProfileEditPage = lazy(() =>
 const NotificationsPage = lazy(() =>
   import('@/pages/notifications/index.tsx').then((m) => ({ default: m.NotificationsPage }))
 );
+const SettingsPage = lazy(() =>
+  import('@/pages/settings/index.tsx').then((m) => ({ default: m.SettingsPage }))
+);
 const AuthPage = lazy(() =>
   import('@/pages/auth/index.tsx').then((m) => ({ default: m.AuthPage }))
 );
@@ -124,6 +127,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loader size="lg" centered />}>
             <NotificationsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: routes.settings,
+        element: (
+          <Suspense fallback={<Loader size="lg" centered />}>
+            <SettingsPage />
           </Suspense>
         ),
       },

@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Input, Button } from '@/shared/ui';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface PostsSearchProps {
   onSearch: (query: string) => void;
@@ -8,6 +9,7 @@ export interface PostsSearchProps {
 
 export const PostsSearch = ({ onSearch, placeholder = 'Search posts...' }: PostsSearchProps) => {
   const [query, setQuery] = useState('');
+  const { t } = useI18n();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -25,17 +27,17 @@ export const PostsSearch = ({ onSearch, placeholder = 'Search posts...' }: Posts
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder === 'Search posts...' ? t('search.placeholder') : placeholder}
         variant="filled"
         className="flex-1"
       />
       <div className="flex gap-2">
         <Button type="submit" variant="solid" tone="accent">
-          Search
+          {t('search.action')}
         </Button>
         {query && (
           <Button type="button" variant="ghost" tone="neutral" onClick={handleClear}>
-            Clear
+            {t('search.clear')}
           </Button>
         )}
       </div>

@@ -45,7 +45,8 @@ namespace OneTake.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPosts([FromQuery] string? tag, [FromQuery] Guid? authorId, [FromQuery] string? cursor, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
         {
-            Result<PagedPostResponse> result = await _postService.GetPostsAsync(tag, authorId, cursor, pageSize, cancellationToken);
+            Guid? currentUserId = TryGetCurrentUserId();
+            Result<PagedPostResponse> result = await _postService.GetPostsAsync(tag, authorId, cursor, pageSize, currentUserId, cancellationToken);
             return result.ToActionResult(HttpContext.TraceIdentifier, Request.Path, Request.Method);
         }
 
@@ -57,7 +58,8 @@ namespace OneTake.WebApi.Controllers
                 return Ok(new PagedPostResponse(new List<PostDto>(), null, false));
             }
 
-            Result<PagedPostResponse> result = await _postService.SearchPostsAsync(q.Trim(), cursor, pageSize, cancellationToken);
+            Guid? currentUserId = TryGetCurrentUserId();
+            Result<PagedPostResponse> result = await _postService.SearchPostsAsync(q.Trim(), cursor, pageSize, currentUserId, cancellationToken);
             if (result.IsSuccess)
             {
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -82,7 +84,8 @@ namespace OneTake.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost(Guid id, CancellationToken cancellationToken = default)
         {
-            Result<PostDto> result = await _postService.GetPostByIdAsync(id, cancellationToken);
+            Guid? currentUserId = TryGetCurrentUserId();
+            Result<PostDto> result = await _postService.GetPostByIdAsync(id, currentUserId, cancellationToken);
             if (result.IsSuccess)
             {
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -261,7 +264,8 @@ namespace OneTake.WebApi.Controllers
                 List<PostDto> posts = new List<PostDto>();
                 foreach (Guid postId in postIds)
                 {
-                    Result<PostDto> postResult = await _postService.GetPostByIdAsync(postId, cancellationToken);
+                    Guid? currentUserId = TryGetCurrentUserId();
+                    Result<PostDto> postResult = await _postService.GetPostByIdAsync(postId, currentUserId, cancellationToken);
                     if (postResult.IsSuccess && postResult.Value != null && postResult.Value.Visibility == Visibility.Public)
                     {
                         posts.Add(postResult.Value);
@@ -274,6 +278,11 @@ namespace OneTake.WebApi.Controllers
                 return Ok(new List<PostDto>());
             }
         }
+
+        private Guid? TryGetCurrentUserId()
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userId, out Guid parsedUserId) ? parsedUserId : null;
+        }
     }
 }
-

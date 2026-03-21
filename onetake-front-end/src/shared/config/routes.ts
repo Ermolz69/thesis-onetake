@@ -6,6 +6,7 @@ export const routes = {
   postDetails: (id: string | number) => `/posts/${id}`,
   profile: (id: string | number) => `/users/${id}`,
   profileEdit: '/profile/me/edit',
+  settings: '/settings',
   notifications: '/notifications',
   auth: {
     login: '/auth/login',

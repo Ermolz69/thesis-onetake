@@ -20,6 +20,7 @@ export interface Post {
   authorId: string;
   createdAt: string;
   likeCount: number;
+  isLikedByCurrentUser: boolean;
   commentCount: number;
   tags: string[];
   thumbnailUrl?: string | null;

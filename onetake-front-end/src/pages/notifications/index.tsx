@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '@/app/providers/i18n';
 import { notificationApi, type Notification } from '@/entities/notification';
 import { Button, Card, Loader, Badge } from '@/shared/ui';
 import { routes } from '@/shared/config';
@@ -19,6 +20,7 @@ export const NotificationsPage = () => {
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!currentUser?.id) {
@@ -70,16 +72,16 @@ export const NotificationsPage = () => {
       <div className={`${contentContainer} max-w-3xl space-y-6 py-8`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-text-primary">Notifications</h1>
-            <p className="text-text-secondary">Updates about posts, follows, and activity.</p>
+            <h1 className="text-2xl font-semibold text-text-primary">{t('notifications.title')}</h1>
+            <p className="text-text-secondary">{t('notifications.subtitle')}</p>
           </div>
           {unreadCount > 0 && (
             <div className="flex items-center gap-3">
               <Badge variant="soft" tone="accent">
-                {unreadCount} unread
+                {unreadCount} {t('notifications.unread')}
               </Badge>
               <Button variant="outline" tone="neutral" size="sm" onClick={handleMarkAllRead}>
-                Mark all as read
+                {t('notifications.markAllRead')}
               </Button>
             </div>
           )}
@@ -89,10 +91,8 @@ export const NotificationsPage = () => {
           <Loader size="lg" />
         ) : items.length === 0 ? (
           <div className={emptyStateWrapper}>
-            <p className={emptyStateTitle}>No notifications yet</p>
-            <p className={emptyStateText}>
-              When there is activity around your account, it will appear here.
-            </p>
+            <p className={emptyStateTitle}>{t('notifications.emptyTitle')}</p>
+            <p className={emptyStateText}>{t('notifications.emptyBody')}</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -110,7 +110,7 @@ export const NotificationsPage = () => {
                         <p className="font-medium text-text-primary">{n.title}</p>
                         {!n.isRead && (
                           <Badge variant="soft" tone="accent" size="sm">
-                            New
+                            {t('notifications.new')}
                           </Badge>
                         )}
                       </div>
@@ -129,7 +129,7 @@ export const NotificationsPage = () => {
                           handleMarkAsRead(n.id);
                         }}
                       >
-                        Mark read
+                        {t('notifications.markRead')}
                       </Button>
                     )}
                   </div>
@@ -140,7 +140,7 @@ export const NotificationsPage = () => {
         )}
 
         <Button variant="ghost" tone="neutral" className="mt-2" onClick={() => navigate(-1)}>
-          Back
+          {t('common.back')}
         </Button>
       </div>
     </div>

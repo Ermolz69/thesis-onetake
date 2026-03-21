@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { routes } from '@/shared/config';
+import { useI18n } from '@/app/providers/i18n';
 import { Button, Card, Loader } from '@/shared/ui';
 import { AuthContext } from '@/app/providers/auth';
 import { RecommendedFeed } from '@/widgets/recommended-feed';
@@ -24,6 +25,7 @@ export const HomePage = () => {
   const [followingLoading, setFollowingLoading] = useState(false);
   const auth = useContext(AuthContext);
   const currentUser = auth?.user ?? null;
+  const { t } = useI18n();
 
   useEffect(() => {
     if (feedTab !== 'following' || !currentUser?.id) return;
@@ -53,34 +55,34 @@ export const HomePage = () => {
         <section className="space-y-8 text-center">
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
-              OneTake
+              {t('home.heroTitle')}
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-text-secondary sm:text-xl">
-              Share your audio and video content with the world.
+              {t('home.heroSubtitle')}
             </p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
             <Link to={routes.posts}>
               <Button variant="solid" tone="accent" size="lg">
-                Browse Posts
+                {t('home.browsePosts')}
               </Button>
             </Link>
             <Link to={routes.record}>
               <Button variant="outline" tone="neutral" size="lg">
-                Record
+                {t('home.record')}
               </Button>
             </Link>
             {currentUser?.id ? (
               <Link to={routes.profile(currentUser.id)}>
                 <Button variant="outline" tone="neutral" size="lg">
-                  Profile
+                  {t('home.profile')}
                 </Button>
               </Link>
             ) : (
               <Link to={routes.auth.login}>
                 <Button variant="outline" tone="neutral" size="lg">
-                  Sign In
+                  {t('home.signIn')}
                 </Button>
               </Link>
             )}
@@ -88,18 +90,22 @@ export const HomePage = () => {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <Card variant="solid" elevation="raised" radius="xl">
-              <h3 className="mb-2 text-xl font-semibold text-text-primary">Audio & Video</h3>
-              <p className="text-text-secondary">
-                Share your creative content in audio or video format.
-              </p>
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">
+                {t('home.cards.audioVideoTitle')}
+              </h3>
+              <p className="text-text-secondary">{t('home.cards.audioVideoBody')}</p>
             </Card>
             <Card variant="solid" elevation="raised" radius="xl">
-              <h3 className="mb-2 text-xl font-semibold text-text-primary">Discover</h3>
-              <p className="text-text-secondary">Explore content from creators around the world.</p>
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">
+                {t('home.cards.discoverTitle')}
+              </h3>
+              <p className="text-text-secondary">{t('home.cards.discoverBody')}</p>
             </Card>
             <Card variant="solid" elevation="raised" radius="xl">
-              <h3 className="mb-2 text-xl font-semibold text-text-primary">Connect</h3>
-              <p className="text-text-secondary">Like, comment, and engage with the community.</p>
+              <h3 className="mb-2 text-xl font-semibold text-text-primary">
+                {t('home.cards.connectTitle')}
+              </h3>
+              <p className="text-text-secondary">{t('home.cards.connectBody')}</p>
             </Card>
           </div>
         </section>
@@ -113,7 +119,7 @@ export const HomePage = () => {
                 size="sm"
                 onClick={() => setFeedTab('recommended')}
               >
-                Recommended
+                {t('home.tabs.recommended')}
               </Button>
               <Button
                 variant={feedTab === 'following' ? 'soft' : 'outline'}
@@ -121,7 +127,7 @@ export const HomePage = () => {
                 size="sm"
                 onClick={() => setFeedTab('following')}
               >
-                Following
+                {t('home.tabs.following')}
               </Button>
             </div>
 
@@ -129,11 +135,13 @@ export const HomePage = () => {
 
             {feedTab === 'following' && (
               <section className="space-y-4 py-2">
-                <h2 className="text-2xl font-semibold text-text-primary">Following</h2>
+                <h2 className="text-2xl font-semibold text-text-primary">
+                  {t('home.following.title')}
+                </h2>
                 {!currentUser ? (
                   <div className={emptyStateWrapper}>
-                    <p className={emptyStateTitle}>Sign in required</p>
-                    <p className={emptyStateText}>Sign in to see posts from people you follow.</p>
+                    <p className={emptyStateTitle}>{t('home.following.signInRequired')}</p>
+                    <p className={emptyStateText}>{t('home.following.signInBody')}</p>
                   </div>
                 ) : followingLoading ? (
                   <Loader size="lg" />
@@ -145,10 +153,8 @@ export const HomePage = () => {
                   </div>
                 ) : (
                   <div className={emptyStateWrapper}>
-                    <p className={emptyStateTitle}>No following posts yet</p>
-                    <p className={emptyStateText}>
-                      Once creators you follow publish, they will appear here.
-                    </p>
+                    <p className={emptyStateTitle}>{t('home.following.emptyTitle')}</p>
+                    <p className={emptyStateText}>{t('home.following.emptyBody')}</p>
                   </div>
                 )}
               </section>

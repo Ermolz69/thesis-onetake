@@ -7,6 +7,7 @@ export const storageKeys = {
     sessionId: 'analytics_session_id',
   },
   theme: 'theme',
+  locale: 'locale',
   filters: {
     posts: 'posts_filters',
   },

@@ -1,5 +1,6 @@
 import { useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useI18n } from '@/app/providers/i18n';
 import { RecordWizard } from '@/widgets/record-wizard';
 import { routes } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
@@ -17,6 +18,7 @@ export const RecordPage = () => {
   const auth = useContext(AuthContext);
   const hasAuth = auth?.hasAuth ?? false;
   const restoreAttempted = auth?.restoreAttempted ?? false;
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!restoreAttempted) return;
@@ -36,8 +38,8 @@ export const RecordPage = () => {
   return (
     <div className={recordPageShell}>
       <div className={`${recordContentContainer} py-8`}>
-        <h1 className={recordPageTitle}>Recording Studio</h1>
-        <p className={recordPageSubtitle}>Record to publish</p>
+        <h1 className={recordPageTitle}>{t('record.title')}</h1>
+        <p className={recordPageSubtitle}>{t('record.subtitle')}</p>
         <RecordWizard />
       </div>
     </div>

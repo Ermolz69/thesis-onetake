@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Card } from '@/shared/ui';
+import { useI18n } from '@/app/providers/i18n';
 
 export interface FilterOptions {
   tag?: string;
@@ -12,6 +13,7 @@ export interface PostsFilterProps {
 }
 
 export const PostsFilter = ({ onFilterChange, availableTags = [] }: PostsFilterProps) => {
+  const { t } = useI18n();
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
   const [selectedAuthor, setSelectedAuthor] = useState<string | undefined>();
 
@@ -30,15 +32,15 @@ export const PostsFilter = ({ onFilterChange, availableTags = [] }: PostsFilterP
     <Card variant="muted" elevation="flat" radius="xl">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-text-primary">Filters</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{t('filters.title')}</h3>
           <Button variant="ghost" tone="neutral" size="sm" onClick={handleClear}>
-            Clear all
+            {t('filters.clearAll')}
           </Button>
         </div>
 
         {availableTags.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-text-secondary">Tags</p>
+            <p className="text-sm font-medium text-text-secondary">{t('filters.tags')}</p>
             <div className="flex flex-wrap gap-2">
               {availableTags.map((tag) => (
                 <Button

@@ -14,6 +14,8 @@ export interface Tab {
 export interface TabsProps {
   tabs: Tab[];
   defaultTab?: string;
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
   className?: string;
   variant?: TabsVariant;
   tone?: TabsTone;
@@ -41,12 +43,15 @@ const toneStyles: Record<TabsTone, { active: string; inactive: string }> = {
 export const Tabs = ({
   tabs,
   defaultTab,
+  activeTab: controlledActiveTab,
+  onTabChange,
   className,
   variant = 'underline',
   tone = 'accent',
   size = 'md',
 }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const activeTab = controlledActiveTab ?? internalActiveTab;
   const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
 
   return (
@@ -62,7 +67,12 @@ export const Tabs = ({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (controlledActiveTab === undefined) {
+                    setInternalActiveTab(tab.id);
+                  }
+                  onTabChange?.(tab.id);
+                }}
                 className={cn(
                   'font-medium transition-[background-color,border-color,color,box-shadow] focus-visible:outline-none focus-visible:[box-shadow:var(--input-ring)]',
                   sizeStyles[size],

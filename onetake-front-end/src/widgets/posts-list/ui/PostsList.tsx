@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { PostsSearch } from '@/features/posts-search';
 import { PostsFilter, type FilterOptions } from '@/features/posts-filter';
+import { useI18n } from '@/app/providers/i18n';
 import { PostCard, usePostStore, postApi } from '@/entities/post';
 import { Loader, Pagination, ErrorMessage } from '@/shared/ui';
 import { emptyStateText, emptyStateTitle, emptyStateWrapper } from '@/shared/ui/recipes';
 
 export const PostsList = () => {
+  const { t } = useI18n();
   const { posts, isLoading, error, nextCursor, fetchPosts, likePost, unlikePost } = usePostStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{
@@ -99,8 +101,8 @@ export const PostsList = () => {
 
       {!displayLoading && !error && paginatedPosts.length === 0 && (
         <div className={emptyStateWrapper}>
-          <p className={emptyStateTitle}>No posts found</p>
-          <p className={emptyStateText}>Try another search or adjust the active filters.</p>
+          <p className={emptyStateTitle}>{t('posts.noResultsTitle')}</p>
+          <p className={emptyStateText}>{t('posts.noResultsBody')}</p>
         </div>
       )}
 
@@ -113,7 +115,7 @@ export const PostsList = () => {
                 post={post}
                 onLike={handleLike}
                 onUnlike={handleUnlike}
-                isLiked={likedPosts.has(post.id)}
+                isLiked={likedPosts.has(post.id) || post.isLikedByCurrentUser}
               />
             ))}
           </div>

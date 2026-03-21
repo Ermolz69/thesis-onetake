@@ -1,10 +1,10 @@
 import { useState, FormEvent, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input, Button, ErrorMessage } from '@/shared/ui';
 import { http } from '@/shared/api';
-import { api } from '@/shared/config';
-import { useNavigate } from 'react-router-dom';
-import { routes } from '@/shared/config';
+import { api, routes } from '@/shared/config';
 import { AuthContext } from '@/app/providers/auth';
+import { useI18n } from '@/app/providers/i18n';
 
 interface LoginFormData {
   login: string;
@@ -30,6 +30,7 @@ interface AuthByEmailProps {
 export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
+  const { t } = useI18n();
   const [loginData, setLoginData] = useState<LoginFormData>({ login: '', password: '' });
   const [registerData, setRegisterData] = useState<RegisterFormData>({
     email: '',
@@ -44,21 +45,23 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
 
   const validateLogin = (): boolean => {
     const err: Partial<LoginFormData> = {};
-    if (!loginData.login.trim()) err.login = 'Email or username is required';
-    if (!loginData.password) err.password = 'Password is required';
+    if (!loginData.login.trim()) err.login = t('auth.validation.emailOrUsernameRequired');
+    if (!loginData.password) err.password = t('auth.validation.passwordRequired');
     setLoginErrors(err);
     return Object.keys(err).length === 0;
   };
 
   const validateRegister = (): boolean => {
     const err: Partial<RegisterFormData> = {};
-    if (!registerData.email.trim()) err.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email))
-      err.email = 'Enter a valid email';
-    if (!registerData.username.trim()) err.username = 'Username is required';
-    if (!registerData.password) err.password = 'Password is required';
-    else if (registerData.password.length < 6)
-      err.password = 'Password must be at least 6 characters';
+    if (!registerData.email.trim()) err.email = t('auth.validation.emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email)) {
+      err.email = t('auth.validation.emailInvalid');
+    }
+    if (!registerData.username.trim()) err.username = t('auth.validation.usernameRequired');
+    if (!registerData.password) err.password = t('auth.validation.passwordRequired');
+    else if (registerData.password.length < 6) {
+      err.password = t('auth.validation.passwordShort');
+    }
     setRegisterErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -76,7 +79,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
       auth?.setSession(response.accessToken, response.user);
       navigate(next);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Login failed');
+      setSubmitError(err instanceof Error ? err.message : t('auth.errors.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +99,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
       auth?.setSession(response.accessToken, response.user);
       navigate(next);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Registration failed');
+      setSubmitError(err instanceof Error ? err.message : t('auth.errors.registrationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -107,10 +110,10 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
       type="button"
       onClick={() => setPasswordVisible((v) => !v)}
       className="rounded-lg p-1 text-text-muted transition hover:text-text-primary focus:outline-none focus:ring-0"
-      aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+      aria-label={passwordVisible ? t('auth.hidePassword') : t('auth.showPassword')}
       tabIndex={-1}
     >
-      <svg className="w-5 h-5" aria-hidden>
+      <svg className="h-5 w-5" aria-hidden>
         <use href={passwordVisible ? '#icon-eye-off' : '#icon-eye'} />
       </svg>
     </button>
@@ -121,7 +124,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
       <form onSubmit={handleRegisterSubmit} className="space-y-5">
         {submitError && <ErrorMessage message={submitError} />}
         <Input
-          label="Email"
+          label={t('auth.email')}
           type="email"
           value={registerData.email}
           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
@@ -129,10 +132,10 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           disabled={isLoading}
           autoComplete="email"
           variant="filled"
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
         />
         <Input
-          label="Username"
+          label={t('auth.username')}
           type="text"
           value={registerData.username}
           onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
@@ -140,10 +143,10 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           disabled={isLoading}
           autoComplete="username"
           variant="filled"
-          placeholder="username"
+          placeholder={t('auth.usernamePlaceholder')}
         />
         <Input
-          label="Password"
+          label={t('auth.password')}
           type={passwordVisible ? 'text' : 'password'}
           value={registerData.password}
           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -151,7 +154,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           disabled={isLoading}
           autoComplete="new-password"
           variant="filled"
-          placeholder="At least 6 characters"
+          placeholder={t('auth.passwordPlaceholder')}
           trailing={passwordToggle}
         />
         <Button
@@ -161,7 +164,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
           disabled={isLoading}
           loading={isLoading}
         >
-          {isLoading ? 'Creating account…' : 'Create account'}
+          {isLoading ? t('auth.creatingAccount') : t('auth.createAccountAction')}
         </Button>
       </form>
     );
@@ -171,7 +174,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
     <form onSubmit={handleLoginSubmit} className="space-y-5">
       {submitError && <ErrorMessage message={submitError} />}
       <Input
-        label="Email or username"
+        label={t('auth.emailOrUsername')}
         type="text"
         value={loginData.login}
         onChange={(e) => setLoginData({ ...loginData, login: e.target.value })}
@@ -179,10 +182,10 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
         disabled={isLoading}
         autoComplete="username"
         variant="filled"
-        placeholder="Email or username"
+        placeholder={t('auth.emailOrUsername')}
       />
       <Input
-        label="Password"
+        label={t('auth.password')}
         type={passwordVisible ? 'text' : 'password'}
         value={loginData.password}
         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
@@ -190,7 +193,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
         disabled={isLoading}
         autoComplete="current-password"
         variant="filled"
-        placeholder="Password"
+        placeholder={t('auth.passwordPlainPlaceholder')}
         trailing={passwordToggle}
       />
       <Button
@@ -200,7 +203,7 @@ export const AuthByEmail = ({ mode, next = routes.home }: AuthByEmailProps) => {
         disabled={isLoading}
         loading={isLoading}
       >
-        {isLoading ? 'Signing in…' : 'Sign in'}
+        {isLoading ? t('auth.signingIn') : t('auth.signInAction')}
       </Button>
     </form>
   );

@@ -34,7 +34,7 @@ namespace OneTake.Application.Services
             _requestContext = requestContext;
         }
 
-        private static PostDto MapPostDto(Post post, int likeCount, int commentCount)
+        private static PostDto MapPostDto(Post post, int likeCount, bool isLikedByCurrentUser, int commentCount)
         {
             string authorName = post.Author?.Username ?? "Unknown";
             string authorDisplayName = string.IsNullOrWhiteSpace(post.Author?.Profile?.FullName)
@@ -53,6 +53,7 @@ namespace OneTake.Application.Services
                 post.AuthorId,
                 post.CreatedAt,
                 likeCount,
+                isLikedByCurrentUser,
                 commentCount,
                 post.PostTags.Select(pt => pt.Tag!.Name).ToList(),
                 post.Media?.ThumbnailUrl,
@@ -150,8 +151,9 @@ namespace OneTake.Application.Services
             foreach (Post post in posts)
             {
                 int likeCount = await _unitOfWork.Reactions.CountByPostAndTypeAsync(post.Id, ReactionType.Like);
+                bool isLikedByCurrentUser = await _unitOfWork.Reactions.ExistsByPostAndUserAsync(post.Id, userId, ReactionType.Like);
                 int commentCount = await _unitOfWork.Comments.CountByPostIdAsync(post.Id);
-                postDtos.Add(MapPostDto(post, likeCount, commentCount));
+                postDtos.Add(MapPostDto(post, likeCount, isLikedByCurrentUser, commentCount));
             }
             string? nextCursor = null;
             if (hasMore && posts.Count > 0)
